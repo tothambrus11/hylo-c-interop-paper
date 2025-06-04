@@ -1,5 +1,5 @@
 
-\documentclass{article}
+\documentclass[english]{article}
 \pdfpagewidth=8.5in
 \pdfpageheight=11in
 \usepackage{ijcai20}
@@ -15,10 +15,23 @@
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{enumitem}
+\usepackage{geometry}
+
+\geometry{verbose,tmargin=3.5cm,bmargin=4cm,lmargin=3.8cm,rmargin=3.8cm}
+
 \urlstyle{same}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=red, % blue
+    urlcolor=blue,
+    citecolor=red
+}
 
 \begin{document}
 \input{title_page}
+\onecolumn
+
 
 \clearpage
 \pagenumbering{arabic}
@@ -28,6 +41,11 @@
 \input{sections/introduction}
 
 \input{sections/use_cases_of_interop.tex}
+
+\input{sections/academic_background.tex}
+
+
+\input{sections/related_research.tex}
 
 \input{sections/methodology.tex}
  
@@ -39,10 +57,11 @@
 
 \input{sections/conclusion_and_future_work}
 
-\input{sections/appendix}
 
 \bibliographystyle{plain}
 \bibliography{references}
+
+\input{sections/appendix}
 
 \end{document}
  

@@ -1,8 +1,13 @@
 {
     "cSpell.words": [
+        "Bazel",
+        "Bindgen",
         "Hylo",
         "Hylo's",
-        "rearchitecting"
+        "rearchitecting",
+        "reprc",
+        "upstreamed",
+        "Zngur"
     ],
     "latex-workshop.latex.outDir": "build",
 }

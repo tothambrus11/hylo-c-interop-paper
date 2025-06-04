@@ -1,7 +1,56 @@
-\section{Technical Considerations and Architecture of C Interoperaibilty Technology in Hylo}
+\section{Technical Considerations and Architecture of C Interoperability Technology in Hylo}
+
+\subsection{Portability and the C ABI}
+Describe what kind of differences exist between C ABIs, such as integer type sizes, signedness of char, endinness, stack handling, calling conventions. 
+
+todo: describe what are the inherent things that need to be different in ABIs based on different architectures, and what are imposed by the OS and the C language.
+
+\bigbreak \bigbreak \bigbreak
+\bigbreak \bigbreak \bigbreak
+\bigbreak \bigbreak \bigbreak
+\bigbreak \bigbreak \bigbreak
+
+\subsection{Lowering Function Calls}
+Describe what Rust does (reimplementing the C ABI algorithms for a handful of platforms), and what Swift does (relying on Clang, probably that helps a lot - todo research more, maybe interview someone)
+
+Describe what simpler languages do, e.g. Go, Zig, ... 
+
+Describe how much simpler it is when the language is transpiled to C/C++.
+
+\subsubsection{Handling Inline C Functions}
+\label{sec:handling_inline_c_functions}
+- Draft - 
+
+\textbf{Easy solution:} generate a wrapper header and .c and .h file that wraps the inline functions into non-inline wrappers, you can compile the .c file separately using your compiler of choice (whatever extension it has), and then use the generated .h file to import your functions from. LTO makes this most likely a good solution.
+
+\textbf{Hard solution:} ask Clang to parse and lower the inline functions to LLVM IR which can be inlined into the Hylo call site. Swift probably does this.
+
+
+
+
 
 \subsection{C Dialects}
 
+The C language has evolved into various dialects over the course of its 50+ year evolution, despite being specified by an ISO standard. For example, the Linux kernel extensively uses extensions provided by the gcc compiler, thus cannot be compiled with MSVC. Dialects pose a challenge for interoperability, as an interoperability tool shall support a diverse range of C projects to be useful for adopting much of the existing ecosystem.
+
+The primary sources of language differences are as follows:
+\begin{itemize}
+    \item \textbf{Standard versions:} The C standard has evolved over time, and different projects support different standard versions. Since C is largely backwards compatible, some libraries may stay with older standard to keep supporting their clients who may not be able to upgrade to the latest standard, though they are generally usable from newer language versions.
+    \item \textbf{Compiler-specific extensions:} Major compilers like GCC, Clang and MSVC provide various extensions to the language that are not part of the standard. Some extensions only affect implementation like the embedded assembly blocks, while others affect the ABI of the generated code like the \verb|__attribute((packed))__| which can change the memory layout of structs. When implementation is separately maintained outside of header files, only the ABI-affecting category poses challenges, but inline functions are often defined in headers for potential performance benefits, so an interoperability tool shall ideally handle both cases, at least for code parsing but potentially also for code generation (see \autoref{sec:handling_inline_c_functions}).
+    \item \textbf{Compiler Plugins:} Clang, GCC - todo describe that they will be out of scope for interop and the reasoning
+    \item \textbf{High-performance computing / GPU programming compilers:} NVidia HPC, Intel oneAPI DPC++ - todo research more
+    \item \textbf{Conditional Features:} Some features in the C standard are conditionally supported, the compiler vendor doesn't have to support them to be standard compliant. Such features include the \verb|_Atomic| qualifier and complex numbers. The interop tool shall be able to parse all these features.
+\end{itemize}
+
+TODO: describe various options for parsing C headers, including the comparison for MSVC, GCC, Clang's capabilities regarding AST introspection, C++26 static reflection and macro and template based meta programming based solutions. Spoiler: Clang is the best option, which supports various dialects (including some MSVC and GCC extensions), supports parsing various C standard versions, and can be configured with the exact compiler flags when parsing that they use for compilation. Compare various Clang library versions, including libclang, Clang plugins, LibTooling and embedding the whole Clang compiler itself.
+
+
+
+
+
+
+
+
 \bigbreak \bigbreak \bigbreak
 \bigbreak \bigbreak \bigbreak
 \bigbreak \bigbreak \bigbreak
@@ -32,69 +81,9 @@
 \bigbreak \bigbreak \bigbreak
 \bigbreak \bigbreak \bigbreak
 
-\subsection{Portability}
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
 
-\subsection{Ingesting C Headers}
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
 
-\subsection{Lowering to LLVM}
+
 
 \bigbreak \bigbreak \bigbreak
 \bigbreak \bigbreak \bigbreak
@@ -129,37 +118,9 @@
 
 
 \subsection{Transparent Cross-Language IDE Features}
+Draft: In statically compiled languages, so far Swift's solution is by far the best. They created Sourcekit-LSP (language server protocol) that provides a rich set of features like code completion, symbol renaming, cross-language navigation, and debugging. It is built on top of the ClangD (the C/C++ language server) and SourceKitD, Swift's language server. Sourcekit-LSP is a part of the Swift toolchain, and it is used by Xcode, VSCode, and other editors. TODO describe how this works, what's the architecture, and whether it needs modifications to clangd or we can just use and wrap it in Hylo-LSP.
 
-
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
-\bigbreak \bigbreak \bigbreak
+Include nice architecture diagram.
 
 
 

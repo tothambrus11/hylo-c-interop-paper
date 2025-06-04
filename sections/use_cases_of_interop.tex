@@ -1,5 +1,6 @@
 \section {Background: Use Cases of C/C++ Interoperability}
-TODO: write introduction, add references to Rust, Swift, Zig and D for their suitability in different use cases.
+\label{sec:use_cases_of_interop}
+TODO: write introduction, add references to Rust, Swift, Zig and D for their suitability in different use cases within the sections.
 
 \subsection{Leveraging OS APIs}
 
@@ -15,7 +16,7 @@ Direct interoperability with other higher-level systems programming languages li
 \subsection{Hylo as a C++ Successor}
 Hylo's goal is to prove that mutable value semantics can provide safety and simplicity without compromising the performance of C and C++\cite{hylo-lang}. This requires that most problems that C++ is used for can be expressed in Hylo efficiently. While our hypothesis is that Hylo will be great for starting new projects, integrating into an existing project without rearchitecting it to avoid aliasing mutable state is challenging  due to Hylo's stricter semantics.
 
-An ideal successor language would allow \textbf{unordered, incremental adoption} with bi-directional interoperability\cite{requirements-for-cpp-successor-languages}, meaning that C++ components could be gradually replaced with Hylo components without having to migrate all its dependencies first. Carbon and Swift aim to support this with features like allowing Carbon types to inherit from C++ types\cite{carbon-interop-goals} or allowing to conform C++ types to Swift protocols\cite{swift-cpp-posthoc-conformance}, however there are many limitations and this is still an open research area. TODO add citation to Swift limitations, and mention Zngur's approach.
+An ideal successor language would allow \textbf{unordered, incremental adoption} with bi-directional interoperability\cite{requirements-for-cpp-successor-languages}, meaning that C++ components could be gradually replaced with Hylo components without having to migrate all its dependencies first. Carbon and Swift aim to support this with features like allowing Carbon types to inherit from C++ types\cite{carbon-interop-goals} or allowing to conform C++ types to Swift protocols\cite{swift-cpp-posthoc-conformance}, however there are many limitations, and this is still an open research area. TODO add citation to Swift limitations, and mention Zngur's approach.
 
 There is also an apparent \textbf{trade-off between the expressiveness of the mapped subset of C++ and the "purity" of the new language}. Mapping foreign constructs may require the new language to be extended with language or library features that circumvent the safety guarantees and value semantics. If the usage of such constructs is only allowed in an unsafe context, much of the Hylo code interacting with the C++ side would need to be marked as unsafe, which would increase the noise without providing much value. (Todo relate this to Zngur's approach. Maybe no need to talk about solutions here though, but Zngur's approach is quite a big mindset shift.)
 
@@ -27,6 +28,8 @@ Hylo offers a more ergonomic and less error-prone approach to generic programmin
 These Hylo-generated libraries would adhere to C++ best practices, including leveraging concepts (derived from Hylo's traits) to ensure misuse is difficult. Using Hylo as a frontend for library development could mitigate common C++ authoring pitfalls, such as the inability to precisely specify function APIs and the reliance on creative template instantiation to expose bugs.
 
 Some limitations arise due to the differences between the generics systems' semantics, e.g. with regards to specializations, whose implications would need further exploration.
+
+TODO: mention similar technologies that do this.
 
 \subsection{Exposing Hylo Libraries Through a C API}
 

@@ -1,17 +1,40 @@
 \section{Methodology}
+This research was conducted using a combination of academic and industry research, expert interviews, implementing prototypes, and feedback from the Hylo developer community. The goal was to gather comprehensive information on the state of interoperability technologies, particularly focusing on C interop (but positioning it relative to C++ interop for future extension of the design), and to develop prototype that demonstrates the feasibility and challenges of designing and implementing an interoperability solution.
+
+\subsection{Scope shift}
+The research initially targeted towards C++ interoperability, but as the research progressed, it became clear that the scope was too broad and the focus of the design and prototyping was shifted to C interoperability to allow for a more focused and manageable analysis.
+
+\subsection{Industry Research}
+We started by reviewing the existing interoperability technologies in various programming languages, including Swift, Rust, D, Carbon, and Zenon. This involved reading documentation, blog posts, and watching conference talks to understand their features, limitations, and collect desirable properties for an interoperability solution for Hylo. We discovered that some of the desirable properties may contradict each other in different contexts (such as ease of use vs. safety vs. performance), so we had to establish the distinct use cases of interoperability (\autoref{sec:use_cases_of_interop}), and what Hylo should  target to be able to evaluate design decisions against the use cases.
+
+We also conducted interviews with 3 experts in C/C++ and interoperability:
 \begin{itemize}
-    \item Reviewing interop technologies of Swift, Rust, D, Carbon, Zenon
-    \item Interviews with experts in the field
-    \begin{itemize}
-        \item David Sankel - Zngur Rust-C++ interop contributor, head of Software Technology lab at Adobe
-        \item Michal Brzozowski - Creator of the Zenon language
-        \item TODO: Timur Doumler - the expert of type punning and undefined behavior in C++
-    \end{itemize}
-    \item Feedback from Hylo contributor meetings (David Abrahams, Dimitri Racordon, Lucian Radu Teodorescu)
-    \item Literature review using snowballing, elicit, Undermind
-    \item Prototype using LibClang (interop with C API from Swift)
-    \item Creating the integer conversion constructs
+    \item David Sankel, a contributor to the Zngur Rust-C++ interop project and head of the Software Technology lab at Adobe.
+    \item Michal Brzozowski, the creator of the Zenon language.
+    \item Timur Doumler, an expert in type punning and undefined behavior and safe guarantees of C++. (planned)
 \end{itemize}
 
-\subsection{Responsible Research}
-Use of AI: when extensive deep research reports are created, the prompt, the AI model, the model's methodology, and the output are recorded, along with the original sources.
+We gathered feedback from Hylo contributor meetings, including discussions with David Abrahams, Dimitri Racordon, and Lucian Radu Teodorescu, who raised concerns and provided ideas regarding integer conversions from C types.
+
+\subsection{Academic Literature Review}
+We conducted an exploratory academic literature review using a combination of Scopus queries, snowballing from (todo ref), and AI-assisted tools like Elicit and Undermind. The related research is presented in \autoref{sec:related_research}, and the exact prompts are presented in \autoref{app:academic_literature_review}.
+
+The Scopus based search was done in 3 parts: general papers related to cross-language interoperability, papers related to C interoperability, and papers related to C++ interoperability. The search was limited to the last 10 years, as the industry review suggested that most of the significant advancements in high-fidelity interoperability have been made since the introduction of Swift and Rust since 2014 and 2015 respectively. However, snowballing revealed some relevant papers from earlier years, notably (Why IDLs are Not Ideal - todo ref).
+
+\subsection{Prototyping}
+There were two POC prototypes implemented during the research: C integer conversions, and FFI code generation using LibClang. For integer conversions, the aim was to design and develop a solution that can be upstreamed to the Hylo compiler and standard library, while the FFI code generator was used to explore the capabilities and limitations of LibClang, as well as familiarizing with Swift's interoperability with C APIs.
+
+The C integer conversions involved API design, implementing the standard library types using code generation for generating the $N^2$ conversions between different sized integers, extending compiler intrinsics, and implementing LLVM lowering for the conversions in the backend. The implementation is available in (todo ref).
+
+The FFI code generator was implemented as a separate tool in Swift, using the LibClang as a C library. Using Swift allowed us to create some safer and simpler abstractions over the C API, such as the ability to print enum values as strings, and get a feel for a seamless editor experience with cross-language navigation, symbol renaming and debugging thanks to Sourcekit-LSP.
+
+\subsection{Responsible Research: Use of AI and Information Management}
+We found that a significant portion of the knowledge related to cross-language interoperability resides within online documentation, community forums, and articles, rather than academic papers. The sheer volume and varying density of relevant information within these resources presented a considerable navigational challenge. To assist in targeted exploration of specific research questions within this landscape, we utilized Gemini 2.5 Pro's Deep Research. In addition, we used Gemini 2.5 Flash for answering questions from the uploaded C23 and C++23 standards, and highlighting relevant sections that we consequently reviewed in detail.
+
+To ensure transparency and enable critical assessment of AI-derived insights, we adopted a systematic recording process. For each significant AI-assisted inquiry, we documented the input prompt, the research methodology generated by the model, and its complete output report, including all cited references. This practice proved crucial when a contradiction in AI-synthesized information was detected. Our records allowed us to trace this discrepancy back to the AI model's reliance on forum discussions where information was partially presented or inaccurate. This incident highlighted the imperative of meticulously validating primary sources before drawing firm conclusions—a principle of heightened importance when AI is employed to navigate and synthesize information.
+
+Our experience affirms that AI tools can significantly accelerate the initial identification of relevant materials within vast datasets, they fundamentally augment, rather than replace, critical human oversight and rigorous source vetting. It is crucial to acknowledge that AI usage introduces its own set of risks if not managed with transparency and care. However, purely manual research methodologies are not without their own challenges; the sheer scale of available information can inadvertently lead to a narrower scope of inquiry or what might be termed a 'laziness bias'—a tendency towards less exhaustive exploration—potentially resulting in an incomplete understanding of a topic. We found that the responsible and transparent application of AI, far from being merely a high-risk endeavour, can actually bolster research efforts. When used judiciously and coupled with meticulous verification, AI can help researchers delve deeper and explore more broadly than might be feasible through manual methods alone, thus mitigating some inherent human limitations in processing extensive information.
+
+To manage the collected information, resources, references and notes, we employed Obsidian as our knowledge management environment, adapting the Zettelkasten method(todo ref) to organize our findings. This method involves creating atomic, interlinked notes enriched with tags and metadata, facilitating a granular and networked understanding of the subject matter. The DataView plugin for Obsidian further enhanced our organizational capacity by enabling queries based on these tags and metadata, allowing us, for example, to effectively track the progress of reviewing academic articles and conference talks.
+
+This approach to both AI-assisted exploration and overall information management was intended to ensure the integrity of our findings and maximize their utility to the research community. The resulting collection of notes, which underpins this research, is openly available on GitHub for further collaboration(todo ref). Over time, it aims to become a comprehensive collection of resources and ideas regarding C/C++ interoperability, offering a valuable starting point for others researching or developing interoperability technologies.
