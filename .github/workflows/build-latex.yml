@@ -1,0 +1,43 @@
+name: Build and Deploy LaTeX
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v2
+        with:
+          root_file: main.tex
+          latexmk_use_xelatex: true
+          latexmk_shell_escape: true
+          extra_system_packages: "texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
+          
+      - name: Upload PDF as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: PDF
+          path: main.pdf
+      
+      - name: Move PDF to deployment directory
+        run: |
+          mkdir -p public
+          cp main.pdf public/
+          cp build/main.pdf public/ || true
+          echo "PDF document available at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/main.pdf" > public/index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
