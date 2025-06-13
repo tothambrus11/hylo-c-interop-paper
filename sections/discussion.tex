@@ -1,3 +1,11 @@
-\section{Discussion}
+\section{Discussion and Future Work}
 
-survey of many platforms and C compiler implementations to see the distribution of type sizes and representations
+The design presented in this paper provides a comprehensive roadmap for building a high-fidelity, safe, and usable C interoperability layer for Hylo. By leveraging Clang for its deep semantic analysis and ABI knowledge, and by building a flexible mapping system that prioritizes both sensible defaults and user customization, our approach addresses the key challenges that have made robust interoperability difficult to achieve in the past.
+However, our design has limitations. The proposed strategy for handling complex macros is intentionally conservative, requiring manual wrapping in many cases. Full, direct translation of arbitrary preprocessor logic remains an open and likely intractable research problem.
+The successful implementation of this design opens several avenues for future work:
+
+\begin{itemize}
+    \item \textbf{Full Implementation:} The immediate next step is to implement the full architectural design and mapping specification, getting feedback on interoperability challenges and usability issues of the proposed solution.
+    \item \textbf{Bidirectional Interoperability:} The type mapping knowledge can be used to build tooling that automates the generation of C header files for Hylo libraries, allowing them to be consumed by C, C++, and other languages.
+    \item \textbf{C++ Interoperability:} With a robust C interoperability layer as a foundation, the significantly more complex challenge of interoperating with C++ can be addressed. The lessons learned in handling complex types, ABIs, and tooling integration will be invaluable for tackling C++'s features like templates, inheritance, and exceptions, as well as its significantly more complex type system.
+\end{itemize}

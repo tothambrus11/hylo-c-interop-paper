@@ -1,9 +1,6 @@
 \begin{abstract}
-    TODO: write after the rest is done.
 
+Interoperability with C is critical for new systems languages, yet achieving a high-fidelity bridge requires navigating a complex space of trade-offs between usability, portability, and maintainability. Beyond mastering platform-specific ABIs and C dialects, a robust tool must decipher C's "semantic dialects"—programming conventions where syntax alone is insufficient to determine intent, such as an enum representing a set of mutually exclusive cases, a collection of combinable bitflags, or simply a group of named integer constants. These idioms defy rigid, one-size-fits-all translation.
 
-    \bigbreak \bigbreak \bigbreak
-    \bigbreak \bigbreak \bigbreak
-    \bigbreak \bigbreak \bigbreak
-    
+This paper presents a principled technical design for a C interoperability layer for Hylo that addresses these challenges. We propose an architecture that leverages Clang for high-fidelity parsing and correct ABI handling, and a semantic mapping framework based on sensible defaults with developer-driven customization. This approach allows ambiguous C constructs to be mapped to the most appropriate and idiomatic Hylo representation, balancing automation with developer control. The result is a complete roadmap for a powerful and usable interoperability solution.
 \end{abstract} 
