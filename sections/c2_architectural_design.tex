@@ -9,19 +9,29 @@ To address the challenges outlined above, we propose a Clang-based architectural
 \subsubsection{Parsing Technology: A Clang-Based Approach}
 
 Generating accurate bindings requires a high-fidelity parser for the C language. While various tools exist, a comparative analysis reveals that leveraging the Clang compiler front-end is the most robust approach. Compilers like GCC offer introspection capabilities through plugins or intermediate representations, but these are often less stable or comprehensive than Clang's libraries. Microsoft's MSVC compiler has historically offered limited public APIs for AST introspection.
-Clang, by contrast, provides stable C and C++ libraries (libclang, LibTooling) designed for building tools that require deep semantic understanding of C-family languages. By using a Clang-based parser, the Hylo interoperability tool can:
+Clang, by contrast, provides stable C and C++ libraries (LibClang, LibTooling) designed for building tools that require deep semantic understanding of C-family languages. By using a Clang-based parser, the Hylo interoperability tool can:
 
 \begin{itemize}
     \item Accurately parse a wide range of C dialects and compiler-specific extensions by configuring the Clang front-end with the same flags used to compile the target library.
     \item Gain access to a complete and accurate Abstract Syntax Tree (AST), including type information, source locations, and macro expansions.
 \end{itemize}
 
-\textit{TODO: describe various options for parsing C headers, including the comparison for MSVC, GCC, Clang's capabilities regarding AST introspection, C++26 static reflection and macro and template based meta programming based solutions. Spoiler: Clang is the best option, which supports various dialects (including some MSVC and GCC extensions), supports parsing various C standard versions, and can be configured with the exact compiler flags when parsing that they use for compilation. Compare various Clang library versions, including libclang, Clang plugins, LibTooling and embedding the whole Clang compiler itself.
+\textit{TODO: describe various options for parsing C headers, including the comparison for MSVC, GCC, Clang's capabilities regarding AST introspection, C++26 static reflection and macro and template based meta programming based solutions. Spoiler: Clang is the best option, which supports various dialects (including some MSVC and GCC extensions), supports parsing various C standard versions, and can be configured with the exact compiler flags when parsing that they use for compilation. Compare various Clang library versions, including LibClang, Clang plugins, LibTooling and embedding the whole Clang compiler itself.
 }
 
-\subsubsection{FFI Generation vs Direct AST Emission}
+\subsubsection{Architecture of Customizabile Mappings}
+TODO compare comment-based vs attribute based mappings, and describe rule files
 
+TODO move this to the relevant section
+
+\subsubsection{FFI Generation vs Direct AST Emission}
 TODO add nice diagram of the two types of architectures
+
+
+\subsubsection{Declarations vs Opaque data + computed properties}
+This is important, as unions, bit-fields and other C layout constructs that don't have Hylo representations can be represented as opaque data with computed properties accessing them just like other regular Hylo types. (todo describe problems of separate declarations vs computed properties)
+
+TODO shouldn't be here because it's discussed in the next section in detail.
 
 \subsubsection{Lowering Function Calls and Handling the ABI}
 
@@ -33,35 +43,6 @@ todo: describe what are the inherent things that need to be different in ABIs ba
 
 \subsubsection{Handling Challenging C Constructs}
 
-\paragraph{Header-Defined Functions (`static`, `inline`)}
-
-Functions defined entirely within header files, typically using the `static` or `inline` keywords, pose a significant challenge because they do not produce linkable symbols in object files by default. To call them from another language, their function bodies must be made available. Our analysis of existing technologies reveals two primary architectural approaches to this problem:
-\begin{itemize}
-    \item \textbf{Generating C Wrappers:} This approach, used by tools like Rust's `bindgen`, involves generating a new `.c` source file containing non-inline wrapper functions for each desired header-defined function. This new source file is then compiled into an object file, and the foreign language bindings call the resulting externally visible symbols. This strategy is robust, but its implementation is subtle due to the different linkage rules in C. A `static inline` function has internal linkage, so its definition is available in any translation unit that includes the header, making it safe to wrap. A plain `inline` function, however, requires a single external definition to exist somewhere in the program. Generating a wrapper for it can lead to linker errors if this external definition is not present, which is why `bindgen` conservatively avoids wrapping plain `inline` functions. While performance can be recovered if the compilers share a backend (e.g., LLVM) and Link-Time Optimization (LTO) is enabled, it is not guaranteed.
-    \item \textbf{Direct LLVM IR Emission:} A more deeply integrated approach, employed by Swift's C interoperability layer, is to use Clang's libraries not just for parsing the AST, but to go a step further and request the compilation of the header-defined function directly into LLVM Intermediate Representation (IR). By operating at the compiler level rather than the linker level, this strategy completely sidesteps the complexities of C's linkage rules. It can correctly handle `static`, `inline`, and `static inline` functions with equal fidelity. This IR can then be consumed by the new language's compiler and inlined directly at the call site.
-\end{itemize}
-For Hylo, which prioritizes performance and seamless "zero-cost" abstractions, our proposed architecture adopts the \textbf{Direct LLVM IR Emission} strategy. While more complex to implement, this approach is superior as it allows for true cross-language inlining without relying on linker optimizations, perfectly aligning with the goal of high-fidelity interoperability.
-
-\paragraph{Macros}
-
-\subparagraph{Use cases for macros}
-\begin{itemize}
-    \item \textbf{constants} (easy to import with a default inferred type like Swift)
-    \item \textbf{named untyped literal constants} that only get a type when inserting them in a context - not so necessary, user could insert conversion if needed when using it
-    \item \textbf{inline functions} - used quite frequently, so I'd think they would be priority - but there may be some limitations on what kinds of macros we should accept, inferring upper bound on parameter types might be tricky. Also, question arises which operator precedence should be taken - textual replacement or adding logical parenthesis around variables.
-    \begin{itemize}
-        \item challenges:
-        \begin{itemize}
-            \item operator precedence and parenthesizing
-            \item duplication of side-effects vs capturing arguments (by value vs by reference?)
-            \item lack of types on the arguments - it would require inference on the possible input types
-        \end{itemize}
-    \end{itemize}
-    \item \textbf{function call to `\_Generic` selection}: can be easily imported to individual overloaded Hylo functions calling the various different C functions
-    \item \textbf{generating a function/struct declarations}, \textbf{enum cases} by generating code (stringification, token pasting, \href{https://en.wikipedia.org/wiki/X_macro}{X macro} idiom) - I wouldn't think this would be feasible nor desirable in the other language, but one can have the macro usage in a C file, and just import the resulting declarations into the other language. This may be an impractical restriction, I haven't worked enough with C libraries to estimate the effect.
-    \item \textbf{generating custom control flow structures} (e.g. something that needs an early return on failure) - I think it's again not desirable to import such constructs, it would make sense to implement control flow in the other language's idiomatic ways.
-\end{itemize}
-Promising technology: \href{https://github.com/reitermarkus/cmacro-rs/}{cmacro} - parses C macros and translates them to Rust constants, functions or macros.
 
 \subsubsection{IDE Integration}
 

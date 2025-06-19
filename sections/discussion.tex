@@ -4,8 +4,16 @@ The design presented in this paper provides a comprehensive roadmap for building
 However, our design has limitations. The proposed strategy for handling complex macros is intentionally conservative, requiring manual wrapping in many cases. Full, direct translation of arbitrary preprocessor logic remains an open and likely intractable research problem.
 The successful implementation of this design opens several avenues for future work:
 
+
+TODO SHORTEN, REWRITE AFTER MACRO SECTION IS DONE
 \begin{itemize}
     \item \textbf{Full Implementation:} The immediate next step is to implement the full architectural design and mapping specification, getting feedback on interoperability challenges and usability issues of the proposed solution.
-    \item \textbf{Bidirectional Interoperability:} The type mapping knowledge can be used to build tooling that automates the generation of C header files for Hylo libraries, allowing them to be consumed by C, C++, and other languages.
+    \item \textbf{Bidirectional Interoperability:} The type mapping knowledge can be used to build tooling that automates the generation of C header files for Hylo libraries, allowing them to be consumed by C, C++, and other languages. TODO rewrite this part, it doesn't make sense.
     \item \textbf{C++ Interoperability:} With a robust C interoperability layer as a foundation, the significantly more complex challenge of interoperating with C++ can be addressed. The lessons learned in handling complex types, ABIs, and tooling integration will be invaluable for tackling C++'s features like templates, inheritance, and exceptions, as well as its significantly more complex type system.
 \end{itemize}
+
+TODO mention C/C++ code automatic translation to Hylo as future work
+
+TODO mention as ISA overview and C/C++ implementation-defined representation overview as future work
+
+AST introspection tools comparison

@@ -4,7 +4,7 @@
 \pdfpageheight=11in
 \usepackage{ijcai20}
 
-\usepackage{charter} % font
+\usepackage{charter} % font 
 \renewcommand*\ttdefault{txtt}
 \usepackage{soul}
 \usepackage{url}
@@ -17,10 +17,18 @@
 \usepackage{enumitem}
 \usepackage{geometry}
 
-\geometry{verbose,tmargin=3.5cm,bmargin=4cm,lmargin=3.8cm,rmargin=3.8cm}
+\usepackage[table,xcdraw]{xcolor}
+% \usepackage[normalem]{ulem}
+% \useunder{\uline}{\ul}{}
+\usepackage{changepage}
+
+\usepackage{biblatex}
+\addbibresource{references.bib}
+
+\geometry{verbose,tmargin=3.5cm,bmargin=4cm,lmargin=3.2cm,rmargin=3.2cm}
 
 \urlstyle{same}
-
+ 
 \hypersetup{
     colorlinks=true,
     linkcolor=red, % blue
@@ -28,6 +36,19 @@
     citecolor=red
 }
 
+\newcommand{\Autoref}[1]{%
+    \begingroup%
+        \def\chapterautorefname{Chapter}%
+        \def\sectionautorefname{Section}%
+        \def\subsectionautorefname{Subsection}%
+        \def\subsubsectionautorefname{Subsubsection}%
+        \def\paragraphautorefname{Paragraph}%
+        \def\tableautorefname{Table}%
+        \def\equationautorefname{Equation}%
+        \autoref{#1}%
+    \endgroup%
+}
+ 
 \begin{document}
 \input{title_page}
 \onecolumn
@@ -39,34 +60,24 @@
 
 \input{sections/introduction}
 
-% \input{sections/background.tex}
+\input{sections/methodology.tex}
 
 \input{sections/c1_desirable_properties.tex}
 \input{sections/c2_architectural_design.tex}
 \input{sections/c3_mapping_c_constructs.tex}
 
-% \input{sections/academic_background.tex}
 \input{sections/technical_considerations.tex}
-
-\input{sections/methodology.tex}
-% \input{sections/mapping_c_types_to_hylo.tex}
-
+ 
 \input{sections/related_work.tex}
-
+\input{sections/responsible_research.tex} 
 \input{sections/discussion} 
+\input{sections/conclusion}
 
-\input{sections/conclusion_and_future_work}
-
-\section*{Acknowledgements}
-TODO Thank all the interviewed people, Hylo contributors
+\input{sections/acknowledgements}
 
 \newpage
+\printbibliography
 
-... Hylo doesn't have references \verb|:]|
-
-
-\bibliographystyle{plain}
-\bibliography{references}
 
 \input{sections/appendix}
 

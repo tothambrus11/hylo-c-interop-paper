@@ -1,29 +1,52 @@
 \section{Desirable Properties of a High-Fidelity C Interoperability Layer}
 \label{sec:desirable_properties}
-TODO introduce this section
-
-\subsection{Automation}
-TODO - manual ffi writing is error-prone; try avoiding inconsistencies, detect errors early and provide as much automation as possible.
-
-\subsection{Portability}
-TODO
+\subsection{Use Cases}
+\begin{itemize}
+    \item \textbf{Communicating with OS}
+    \item \textbf{Using existing libraries and bootstrapping the Hylo ecosystem} - user has no control over the sources, modifying them is not an option
+    \item \textbf{Using Hylo in an existing C project} -> translation is also beneficial, see Oxidize, C2Rust, CRust, Corrode. Support function-by-function translation, so that the code can be incrementally translated to Hylo. Also, the user has full ownership of this code for modification.
+    \item \textbf{Exposing Hylo libraries through C APIs} - as Hylo becomes popular, exposing Hylo libraries to other languages will be the easiest through a C interface.
+\end{itemize}
+\subsection{Validation and Automation}
+Manual FFI writing is error-prone; we aim to avoid inconsistencies, detect errors early, but even better to provide as much automation as possible.
 
 \subsection{High Coverage of C Constructs}
-TODO
+TODO - describe what makes C constructs more important to support than others
 
-\subsection{Handling Various C Dialects}
+Manual wrapping adds additional C code, which in itself is error-prone. Reduce the amount of glue code needed, especially on the C side.
+Mapping inherently error-prone constructs like macros and variadic functions 
+
+Note that existing C interop solutions often don't support all C constructs, they just want to support the most cases so that it's possible. 
+
+\subsection{Portability}
+TODO describe ABI differences, function calling convention, data layout
 
 The C language has evolved into various dialects over the course of its 50+ year evolution, despite being specified by an ISO standard. For example, the Linux kernel extensively uses extensions provided by the gcc compiler, thus cannot be compiled with MSVC. Dialects pose a challenge for interoperability, as an interoperability tool shall support a diverse range of C projects to be useful for adopting much of the existing ecosystem.
 
 The primary sources of language differences are as follows:
 \begin{itemize}
     \item \textbf{Standard versions:} The C standard has evolved over time, and different projects support different standard versions. Since C is largely backwards compatible, some libraries may stay with older standard to keep supporting their clients who may not be able to upgrade to the latest standard, though they are generally usable from newer language versions.
-    \item \textbf{Compiler-specific extensions:} Major compilers like GCC, Clang and MSVC provide various extensions to the language that are not part of the standard. Some extensions only affect implementation like the embedded assembly blocks, while others affect the ABI of the generated code like the \verb|__attribute((packed))__| which can change the memory layout of structs. When implementation is separately maintained outside of header files, only the ABI-affecting category poses challenges, but inline functions are often defined in headers for potential performance benefits, so an interoperability tool shall ideally handle both cases, at least for code parsing but potentially also for code generation (see \autoref{sec:handling_inline_c_functions}).
+    \item \textbf{Compiler-specific extensions:} Major compilers like GCC, Clang and MSVC provide various extensions to the language that are not part of the standard. Some extensions only affect implementation like the embedded assembly blocks, while others affect the ABI of the generated code like the \verb|__attribute((packed))__| which can change the memory layout of structs. When implementation is separately maintained outside of header files, only the ABI-affecting category poses challenges, but inline functions are often defined in headers for potential performance benefits, so an interoperability tool shall ideally handle both cases, at least for code parsing but potentially also for code generation (see \autoref{handling_inline_c_functions}).
     \item \textbf{Compiler Plugins:} Clang, GCC - todo describe that they will be out of scope for interop and the reasoning
     \item \textbf{High-performance computing / GPU programming compilers:} NVidia HPC, Intel oneAPI DPC++ - todo research more
     \item \textbf{Conditional Features:} Some features in the C standard are conditionally supported, the compiler vendor doesn't have to support them to be standard compliant. Such features include the \verb|_Atomic| qualifier and complex numbers. The interop tool shall be able to parse all these features.
 \end{itemize}
+ 
+TODO: additional source of differences is conditional compilation, which needs to be handled by the interop tool (just allow specifying given conditions)
+
+\subsection{Scalable Maintenance}
+maintaining a library/application that uses C interop for multiple platforms should be easy
+
 
 \subsection{Control and Customizability}
-There is in fact one more kind of dialect: the semantic meaning of standard C code itself. Unlike C++, C doesn't provide many features for type based abstraction: In C, error conditions are often signaled using special return values (like negative numbers or null pointers) or by setting a global variable. Additionally, C enums frequently serve as bit flags, where individual constants are powers of two, allowing values to represent combinations of these flags. Mapping this lose semantics to stronger types requires additional guidance from the user to avoid ambiguity.
+There is in fact one more kind of dialect: the semantic meaning of standard C code itself. Unlike C++, C doesn't provide many features for type based abstraction: In C, error conditions are often signaled using special return values (like negative numbers or null pointers) or by setting a global variable. Additionally, C enums frequently serve as bit flags, where individual constants are powers of two, allowing values to represent combinations of these flags. Mapping this loose semantics to stronger types requires additional guidance from the user to avoid ambiguity.
+
+
+
+TODO rephrase, complete: Connect to Use Case Constraints: Directly refer back to the constraints you just established in Section 3.1. Say something like: "This need for semantic guidance is coupled with the practical constraints of the primary use cases. The interoperability tooling must therefore be flexible enough to support both scenarios:"
+It must allow for non-intrusive configuration when modifying headers is not an option.
+It should also support in-source annotations for better maintainability when source ownership is available.
+Conclusion of this Section: Conclude by stating that a truly robust solution needs a dual-pronged approach to customization. You have now fully justified why your architecture will have these two specific features before you even present it.
+
+TODO add or rephrase: customize stuff per function vs per header, globally or with pattern matching on name (projects often use common prefixes)
 

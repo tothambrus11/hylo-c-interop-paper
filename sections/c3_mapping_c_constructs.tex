@@ -1,41 +1,22 @@
 \section{Mapping C Constructs to Hylo}
 \label{sec:mapping_c_constructs}
 
-\section{A Semantic Mapping from C to Hylo}
-
-This section defines the core of our contribution: the rules for translating C declarations into safe, idiomatic Hylo constructs. The guiding principle is to preserve Hylo's safety and expressiveness while accurately representing C semantics.
+This section defines the core of our contribution: the rules for translating C declarations into safe, idiomatic Hylo constructs.
 
 \subsection{Primitive Types}
-\subsubsection{Standard Integer Types}
+\subsubsection{Integer Types}
 The mapping of primitive types is foundational to interoperability. Mapping fixed-size integers (\texttt{uint8\_t}, \texttt{int32\_t}, etc.) and word-sized integers (\texttt{size\_t}/\texttt{ssize\_t}) is trivial, as they have an exact corresponding type in Hylo. A key challenge is that the size of C's standard integer types (\texttt{char}, \texttt{short}, \texttt{int}, \texttt{long}) are platform-dependent. For example, \texttt{char} is defined as an at least 8-bit wide, either signed or unsigned integer type, representing the smallest addressable unit of memory on the target (1 byte). Modern processors generally agree on 8-bit bytes, and the niche use cases regarding digital signal processors fail to support modern C/C++ standards, which lead to the proposal \cite{P3477R1} to define a byte having exactly 8 bits. Therefore, we chose to adopt the same strategy for Hylo. Still, the signedness of \texttt{char}, and the exact sizes of standard integer types vary per platform.
+
+\input{sections/numeric_mappings_comparison}
 
 A simplified mapping can be achieved when knowing the target platforms of our language. On modern desktop platforms, integer sizes are generally defined by the ILP32, LLP64 or the LP64 data model, which results in \texttt{char}: 8-bit, \texttt{short}: 16-bit, \texttt{int}: 32-bit, \texttt{long long}: 64-bit, and \texttt{long} being either 32-bit or 64-bit. Leveraging this, Swift and Muon map standard C integer types directly to their fixed-size equivalent, except \texttt{long} which is mapped to a type alias \texttt{CLong} mapping to either a 32-bit or 64-bit integer based on platform.
 \footnote{
-    Swift maps \texttt{char} to a signed \texttt{Int8} regardless of whether the platform defines it as signed. Zig originally mapped \texttt{char} to \texttt{u8}, but it was later decided to introduce the \texttt{c\_char} alias 
-    \href{https://github.com/ziglang/zig/issues/875}{(Zig issue)}. %todo cite
+    Swift maps \texttt{char} to a signed \texttt{Int8} regardless of whether the platform defines it as signed. Zig originally mapped \texttt{char} to \texttt{u8}, but it was later decided to introduce the \texttt{c\_char} alias \cite{zig-add-cchar}.
 }
 ,
 \footnote{
     Swift extensively uses its signed word-sized \texttt{Int} for indices, and maps C's unsigned \texttt{size\_t} to a signed representation for convenience, relying on the assumption that programs don't use \texttt{size\_t}'s most significant bit. E.g. when importing a \texttt{size\_t} constant $2^{64} -1$ from C, Swift sees it as $-1$.
 }
-
-
-\begin{table}
-    \centering
-    \caption{Numeric type mapping in Swift, Rust, Zig and Muon (todo). Cells colored blue indicate that the language uses a platform-specific type alias, while bolded cells indicate a fixed type assignment. Red cells mark experimental features.\textit{ TODO make this a proper table and add citations to Rust links}}
-    \includegraphics[width=\textwidth]{attachments/type comparison.png}
-    \vspace{1em} % Add some space between image and sources/footnotes
-    \footnotesize {
-        Sources:
-        \href{https://github.com/swiftlang/swift/blob/main/docs/HowSwiftImportsCAPIs.md#fundamental-types}{Swift1}, 
-        \href{https://github.com/swiftlang/swift/blob/main/include/swift/ClangImporter/BuiltinMappedTypes.def}{Swift2}, 
-        \href{https://github.com/rust-lang/rust/blob/master/library/core/src/ffi/primitives.rs}{Rust}, 
-        \href{https://ziglang.org/documentation/0.14.1/#toc-Primitive-Types}{Zig} (todo make them citations)
-    }
-
-    \label{tab:type_mapping}    
-\end{table}
-
 
 
 
@@ -49,74 +30,172 @@ In Hylo, we propose a conservative approach by default, --similar to Zig-- but w
     \item \textbf{truncate if needed:} when the represented value's meaning allows, we can silently drop the most significant bits that don't fit the target type. Note, due to two's complement representation, values that fit in the target type will preserve their sign. This may be spelled as \texttt{Int32(truncating\_if\_needed: c\_value)}
     \item \textbf{don't narrow:} when performance is critical but we also want a compile-time guarantee that a conversion is lossless on the target platform, we can use this conversion. \texttt{Int32(non\_narrowing: c\_value)} is a conditionally enabled conversion that is only available when the conversion would be lossless.
 \end{itemize}
-Using these explicit conversions ensures that we explicitly capture the programmer's intent and the code remains maximally portable. The viability of the approach was validated by implementing a code generator that produces the conversion function code for the standard library, detailed in Section 5.
+Using these explicit conversions ensures that we explicitly capture the programmer's intent and the code remains maximally portable. The viability of the approach was validated by implementing a code generator that produces the conversion function code for the standard library, and testing its usage in Hylo code. The code generator, the generated code and an example usage can be found in TODO upload to github.
 
-However, writing all these conversions by hand may be very inconvenient, especially when we have solid assumptions about the target platform. E.g. when writing a wrapper around the LLVM compiler, we know that it will only be used on modern desktop platforms, where we can define many of the mappings like Swift or Muon did. Therefore, we allow making project-specific explicit assumptions about the target platforms, such as \texttt{c\_short} is 16-bit. These assumptions are checked for all the specified target platforms before compilation, so there are no risks introduced.
+
+However, writing all these conversions by hand may be very inconvenient, especially when we have solid assumptions about the target platform. E.g. when writing a wrapper around the LLVM compiler, we know that it will only be used on modern desktop platforms, where we can define many of the mappings like Swift or Muon did. Therefore, we allow making project-specific explicit assumptions about the target platforms, such as \texttt{c\_short} is 16-bit. These assumptions can be checked for all the specified target platforms before compilation, so there are no risks introduced.
 
 In addition, if a Hylo project generally uses the \texttt{Int} or \texttt{Int32} type for indices, it may specify to translate all \texttt{size\_t} function parameters to the expected types in all or some methods. Unless the bit-width is the same, this may involve truncation, which could be configured to trap on overflow or an error \emph{before} compilation. When a runtime conversion is needed, the original C function is not exposed to our Hylo code, instead a new wrapper function calling it and performing the necessary checks is exposed.
 
-\vspace{1em} % Add some space
-\textit{TODO:}
-\begin{itemize}
-    \item write about floats, complex\&imaginary number types, bool, and some other platform-defined types such as wchar\_t and size\_t.
-\end{itemize}
+The technique of mapping a C type to its own distinct type in Hylo, and utilizing explicit conversions can not only be applied to standard integer types, but also to other types that have varying valid value ranges on different platforms: \texttt{(u)int\_fastN\_t}, \texttt{(u)int\_leastN\_t}, \texttt{intmax\_t}, \texttt{wchar\_t}, \texttt{wint\_t}, \texttt{size\_t}, \texttt{ssize\_t}\footnote{\texttt{ssize\_t} is available as a POSIX extension}, \texttt{(u)intptr\_t} and \texttt{ptrdiff\_t}.
 
-Other primitive types are mapped as follows:
+On modern, flat-memory model systems, \texttt{size\_t}, \texttt{ssize\_t}, \texttt{(u)intptr\_t}, \texttt{ptrdiff\_t} are generally defined as pointer-sized integers by the implementations, but special architectures like capability-based architectures\cite{cheri-intro}\cite{hackernews-rust-cheri} or 16-bit segmented memory architectures\cite{arch16-bit} may have different definitions. Due to this constraint holding true on most modern platforms, we suggest mapping these types to Hylo's pointer-sized \texttt{Int}/\texttt{UInt} types by default, and providing options to override this when necessary. This generally allows for a more idiomatic use of these types in Hylo, and advanced users can still override the mapping to use distinct types if they need to.
+
+The rest of the C integer types are more straightforward to map:
 \begin{itemize}
-    \item C's \texttt{\_Bool} is mapped to Hylo's \texttt{Bool}.
-    \item C's \texttt{wchar\_t} for wide characters is mapped to a distinct \texttt{CWideChar} type in Hylo.
+    \item \textbf{\texttt{bool/\_Bool}} is mapped to Hylo's \texttt{Bool} type. Before C99, there was no dedicated boolean type, so conversions from \texttt{int/char} would be needed.
+    \item \textbf{\texttt{(u)intN\_t} --explicit-width integers--} are mapped to Hylo's corresponding fixed-width integer types (\texttt{UInt8}, \texttt{UInt64}, etc.), which have the same memory layout and bit-width as the C types.
+    \item \textbf{\texttt{\_BitInt(N)}} cannot be directly mapped to Hylo yet due to the lack of arbitrarily sized integers. However, in structs we can map them to an opaque byte sequence, exposing the value through a computed property of the closest sufficient fixed-width integer type. In function calls, a wrapper function shall be exposed that presents fixed-width integer types in parameter and return types, with the necessary conversion performed and optionally bounds-checked. 
+\end{itemize} 
+
+\subsection{Enums}
+C enums are unlike enums in most other languages. In C, enums are essentially named integer constants, and the enum's type can be implicitly converted to and from the underlying integer type. However, their usage often involves specialized semantics:
+\begin{enumerate}
+    \item \textbf{Discriminated values:} often each enum case represents a distinct value, and a variable holding an enum value is expected to only hold one of these values. One can perform pattern matching on such values, however exhaustiveness is not checked.
+    \item \textbf{Bit flags:} enums are often used to represent a set of flags, where each case is a power of two, and the enum value can be any combination of these flags. Set operations such as \textit{union}, \textit{intersection}, or membership checking may be performed via bitwise operations. 
+\end{enumerate}
+
+Assuming Hylo's enums will be similar to Swift's enum type, there are multiple possible mappings, of which the developer shall be able to choose:
+\begin{itemize}
+    \item \textbf{Closed enum}: a closed set of enum cases, usable for exhaustive pattern matching. When mapping libraries, we must be careful with these, as C programmers generally think of adding a new enum case as a non-breaking change. The mapping generator should assert that all enum cases are distinct.
+    \item \textbf{Open enum}: an extendable set of enum cases, allowing for extensibility. This mapping is more flexible but requires a default case in pattern matching, handling any unexpected values. The generator should assert that all enum cases are distinct.
+    \item \textbf{OptionSet}: a data structure with high-level operations for set operations like union, intersection, and membership checking. This mapping is suitable for bit flags, and the generator should assert that all enum cases are powers of two (not necessarily distinct).
+    \item \textbf{Raw enum}: a mapping that preserves the underlying integer representation of the enum cases. This mapping is suitable for the most conservative use case, where an enum is only used to group a set of related constants.
 \end{itemize}
 
 \subsubsection{Floating Point Types}
-Real floating point numbers: \texttt{float}, \texttt{double}, \texttt{long double}
-\begin{itemize}
-    \item map them to \texttt{CFloat}, \texttt{CDouble}, \texttt{CLongDouble}
-    \item The C standard does not mandate conformance to the ISO/IEC 60559 standard, but for now Hylo can mandate it. 
-    \item conversions to Hylo's types:
-        \begin{itemize}
-            \item widening: preserving values
-            \item narrowing: rounding, overflow to +-infinity or underflow to 0
-            \item types of conversion functions
-                \begin{itemize}
-                    \item \texttt{init(non\_narrowing: other)}
-                \end{itemize}
-        \end{itemize}
-    \item for now, import them as \texttt{Float}, \texttt{Double} in Hylo, require conformance of C compiler to the ISO/IEC 60559 standard (\texttt{\_\_STDC\_IEC\_60559\_BFP\_\_}). Later, we may allow importing them as \texttt{CFloat}, but keep supporting importing as \texttt{Float}/\texttt{Double}, inserting conversion functions on platform where necessary. \textit{todo} see which platforms have different float representations if any
-\end{itemize}
-Optional standard features (compilers are not required to implement them for standard compliance): complex numbers (since C99), decimal floating point numbers (since C23) -- these could be implemented without an issue in libraries. Complex numbers have specific hardware support for some operations, so the set of built-ins may need to be extended. They are not yet a priority.
+There are 3 universally available \textbf{standard floating point types} in the C23 standard: \texttt{float}, \texttt{double}, \texttt{long double}. The standard doesn't mandate their representation, but implementations generally follow\cite{llvm-float-support} binary formats defined by IEEE 754\cite{ieee754}, except for \texttt{long double}\cite{longdouble-wiki}\cite{weird-precision-support}, thus Rust, Zig and Swift universally map \texttt{float} and \texttt{double} to IEEE 754's 32- and 64-bit binary formats correspondingly. Hylo should follow this pragmatic approach by default but also allow customization to import them as \texttt{CFloat}/\texttt{CDouble} to be more platform-agnostic, with explicit conversions where needed. These conversions may be narrowing due to rounding, overflow to $\pm\infty$ or underflow to 0, so we provide conversion functions similar to integers. Widening conversions generally preserve value
+
+The standard also defines two \textbf{optional features}: \textbf{complex}/imaginary (since C99) and \textbf{decimal} (since C23) floating point types. While complex types may be easily implemented as a Hylo product type of the corresponding floating point types (e.g. \texttt{Complex<CLongDouble>}), decimal types  require software emulation of arithmetic operations\footnote{Such as by a library like: \href{https://github.com/libdfp/libdfp}{Libdfp}} on most architectures, and are not yet supported in LLVM/Clang\cite{no-support-llvm-decimals}. Decimal types are also not used commonly in practice, so we also don't support them in Hylo natively.
 
 \subsection{Composite Types}
 
-\begin{itemize}
-    \item \textbf{Structs:} C \texttt{struct}s are mapped to Hylo \texttt{struct}s with a \texttt{@CLayout} attribute, which instructs the compiler to use the target platform's C-compatible memory layout (including padding, alignment and correct offsets for bit-fields).
-    \item \textbf{Unions:} TODO write
-    \item \textbf{Arrays:} TODO write
-    \item \textbf{Bitfields:} C bitfields have notoriously implementation-defined layout rules. To provide a safe and portable abstraction, bitfields are not exposed directly. Instead, they are imported as a private storage property of an appropriate integer size, and the interoperability tool generates safe getter and setter computed properties in Hylo that perform the necessary bit masking and shifting to access the individual fields.
-\end{itemize}
+C structs and unions are challenging to map to other languages because the new language has to replicate the memory layout of the original type, so that field access is done with correct memory offsets. Determining the struct layout involves handling the size and alignment of members, potentially including padding, and distributing bit-fields. The layout may also be influenced by compiler-specific packing attributes in all major C compilers, though their behavior is consistent.\footnote{See the effect of packing attributes in MSVC, Clang and GCC: \url{https://edu.nl/8hg98}}
+
+C bit-fields have largely implementation-defined layout rules, which can vary significantly between compilers\footnote{See an example of varying layout of bit-fields: \url{https://godbolt.org/z/xqPEvs6YK}}. Due to the challenging nature of C bit-fields, many C interop technologies do not support interoperating with structs with bit-fields\footnote{See \href{https://github.com/rust-lang/rfcs/issues/314}{Rust's open issue about bit-field support in \texttt{\#[repr(C)]}}}\footnote{See Zig's tracking issue \href{https://github.com/ziglang/zig/issues/1499}{\#1499} for implementing bit-field support.}, and it is generally recommended to avoid using them in separately compiled library code, as interoperability is not even guaranteed between C compilers.
+
+We identified two existing approaches for interoperating with bit-fields:
+
+\begin{enumerate}
+    \item Rust lets us \textbf{annotate Rust structs, unions and enums --that have C-compatible members--} with the \texttt{\#[repr(C)]} attribute. Rust then lays out these members according to the C ABI by reimplemented logic\cite{rust-c-layouting}. Notably, bit-fields are not supported natively.
+    
+    However, Bindgen\cite{rust-bindgen}, an external binding generator for Rust, attempts to emit Rust \texttt{\#[repr(C)]} structs from C header files, complementing the layout algorithm with a custom bit-field handling algorithm, and exposing accessor methods that let the user operate with a correctly aligned and padded Rust integer type. This method can often work but has limitations and bugs, a notable problem being that C bit-fields may share storage with other members' padding bits, which is challenging to replicate when generating separate struct fields for each member.\footnote{See \href{https://github.com/rust-lang/rust-bindgen/issues/743\#issuecomment-321051199}{issue \#743 in Bindgen's repository} related to the overlapping storage bug.}.
+    
+    \item Swift imports C declarations by \textbf{directly embedding Clang into the compiler}, and transforming declarations from Clang AST directly to Swift AST declarations\footnote{See structs being imported to Swift in \href{https://github.com/swiftlang/swift/blob/9a0a831b0198e1b794a66316487aacef3d692ca4/lib/ClangImporter/ImportDecl.cpp\#L2079}{ImportDecl.cpp at line 2079}}. It synthesizes computed properties for accessing C bit-fields, which present an API as if the bit-fields were regular Swift fields while performing the necessary bit-masking and shifting to access the individual fields\cite{how-swift-imports-c-structs}. Swift preserves the references to the original Clang AST nodes, which can be used when compiling member access to find out the exact member offsets, therefore resulting in a robust mapping.
+\end{enumerate}
+
+The first approach, decoupling the mapping of implementation-defined C constructs from the main compiler is useful for reducing the compiler's binary size (no need to embed Clang in the general case), simplifies the development environment setup for both the compiler authors and its users, and keeps the bugs easier to fix in the substantially smaller codebase of the binding generator. On the other hand, embedding Clang and directly maintaining layout information from the Clang AST for the backend reduces the maintenance burden of the binding generator, and allows for robust handling of implementation-defined C constructs.
+
+We propose a hybrid approach for Hylo that combines advantages from both methods. Instead of letting the Hylo compiler take care of C struct layout, we map members of unions and structs to a Hylo struct containing a \textbf{contiguous inline byte sequence} with the same length as the original C type's size (including padding bytes). Subsequently, we synthesize computed properties (subscripts) for accessing the individual members, which provide idiomatic access to the members, exactly as if they were stored properties. For struct members, we can leverage LibClang's functions (e.g. \texttt{clang\_Cursor\_getOffsetOfField}) to get the offset, the size in bytes of the underlying type and the bit-width in case of bit-fields. Union members always start at the same memory address, without an offset\cite{c23-struct-and-union-specifiers}.
+
+To ensure the same data layout in Hylo as in C, we need an additional annotations for the Hylo struct: we need to specify its \textit{alignment}, so that the Hylo compiler can know on which boundary it should allocate instances of the struct.
+
+A flexible array member\cite{fam-wiki} within a C struct --an array member that can get more storage based on how much space is allocated for it-- may be implemented in Hylo as a computed property that exposes a typed pointer to the first element of the flexible array member. TODO finish FAM, why are they not UB. Structs with a flexible array member shall additionally have a non-copyable zero-sized member that prevents the automatic synthesis of the \texttt{Copyable} and \texttt{Movable} traits.
 
 \subsection{Pointer Types}
+C's \textbf{pointer to data} are mapped to Hylo's \texttt{Pointer<T>} and \texttt{PointerToMutable<T>} types, depending on the \texttt{const}ness of the pointee. \textbf{Function pointers} can be mapped to Hylo closure types with a \texttt{@convention(C)} attribute and an empty environment, which ensures that the correct calling convention is used when the function is called. The details of this are discussed in the proposal \cite{hylo-function-pointers}.
 
-Pointers are central to C but are a primary source of memory safety issues. To bridge this gap, C pointers are mapped to Hylo's dedicated pointer types, which enforce safety rules:
-\begin{itemize}
-    \item A \texttt{const} C pointer (\texttt{const T*}) is mapped to Hylo's \texttt{Pointer<T>}, which provides read-only access.
-    \item A mutable C pointer (\texttt{T*}) is mapped to Hylo's \texttt{PointerToMutable<T>}, which provides read-write access. Accessing memory through these pointers is an \texttt{unsafe} operation in Hylo.
-    \item C function pointers are mapped to Hylo closure types with a \texttt{@convention(C)} attribute and an empty environment, which ensures that the correct calling convention is used when the function is called. \href{https://github.com/orgs/hylo-lang/discussions/1705}{relevant github discussion}
-\end{itemize}
+For indicating nullability of pointers, Hylo could adopt a similar approach to Swift\cite{how-swift-imports-c-nullable}, where C declarations are annotated with a \textit{nullable}, \textit{non-nullable} or \textit{null-unspecified} attribute. A \textit{nullable} annotation would wrap the imported Hylo pointer/closure within an optional type, which must be guaranteed the same memory layout as the original C pointer type, and where unwrapping the optional involves checking for null under the hood.
+
+Swift already supports a basic scoped customizability using \texttt{pragma}s but the mapping should be more flexible and be possible to set from outside of the header files.
 
 \subsection{Type Qualifiers}
+C types may have 0 or more type qualifiers that modify their semantics or the way their usage gets compiled. \texttt{const}-qualified types indicate that their value cannot be modified, at least not through that particular binding. This is widely applicable to language constructs that need to be mapped, such as global variable bindings, function parameters, struct members, and nested types within pointers. Constant global variables and struct members are mapped to immutable let bindings, function parameters (as always) are mapped to immutable parameters, and pointers to const types are mapped to \texttt{Pointer<T>} instead of \texttt{PointerToMutable<T>}.
 
-C's type qualifiers are handled to preserve their semantics:
+The \texttt{volatile}, \texttt{restrict} and \texttt{\_Atomic} qualifiers signal additional information for the compiler backend. Further research is necessary to see how to handle these properly, as many interop technologies ignore them (Swift, Rust Bindgen) while preliminary efforts for support exist in Zig\cite{zig-qualifiers}.
+
+\subsection{Global Variables and Constants}
+While Hylo deliberately avoids shared mutable state due to its inherent risks \cite{sharedmut}\cite{shared-mutable-state}, practical needs in C interoperability and embedded systems, such as sharing data with interrupt service routines \cite{rust-embedded-pain}, require its introduction. We propose declaring mutable globals with \texttt{unsafe var <name>: <type>}, mandating that all access occurs within an \texttt{unsafe} context to ensure developer vigilance. The \texttt{@extern} version, \texttt{@extern unsafe var <name>: <CType>}, supports linking with external C code. In contrast, their immutable counterparts are declared using \texttt{let} and \texttt{@extern let} for global constants, and can always be accessed safely. Support for thread-local variables is not yet proposed and remains an area for future research.
+
+\subsection{Function Declarations}
+C functions are mapped to Hylo functions with an adapted calling convention, with the following considerations:
 \begin{itemize}
-    \item \texttt{const}: As described above, \texttt{const} affects the mutability of the resulting pointer or data type in Hylo.
-    \item \texttt{volatile}, \texttt{restrict}, \texttt{\_Atomic}: These qualifiers signal special properties to the compiler. They are shall be represented in Hylo's type system to ensure that these semantics can be respected and passed on to the LLVM backend. Further research is necessary to see how to handle these properly, many interop technologies ignore them. (todo)   
+    \item Parameters that are passed by value are converted to Hylo \texttt{sink} parameters, since they operate on an independent copy of the value, and want to make copies explicit in Hylo.
+    \item Parameters that are passed by reference may mean anything in C regarding the pointee - the pointee may be modified, read, consumed or initialized.
 \end{itemize}
+
+\paragraph{Header-Defined Functions (`static`, `inline`)}
+\label{handling_inline_c_functions}
+
+- New Draft: -
+Functions defined entirely within header files, typically using the `static` or `inline` keywords, pose a significant challenge because they do not produce linkable symbols in object files by default. To call them from another language, their function bodies must be made available. Our analysis of existing technologies reveals two primary architectural approaches to this problem:
+\begin{itemize}
+    \item \textbf{Generating C Wrappers:} This approach, used by tools like Rust's `bindgen`, involves generating a new `.c` source file containing non-inline wrapper functions for each desired header-defined function. This new source file is then compiled into an object file, and the foreign language bindings call the resulting externally visible symbols. This strategy is robust, but its implementation is subtle due to the different linkage rules in C. A `static inline` function has internal linkage, so its definition is available in any translation unit that includes the header, making it safe to wrap. A plain `inline` function, however, requires a single external definition to exist somewhere in the program. Generating a wrapper for it can lead to linker errors if this external definition is not present, which is why `bindgen` conservatively avoids wrapping plain `inline` functions. While performance can be recovered if the compilers share a backend (e.g., LLVM) and Link-Time Optimization (LTO) is enabled, it is not guaranteed.
+    \item \textbf{Direct LLVM IR Emission:} A more deeply integrated approach, employed by Swift's C interoperability layer, is to use Clang's libraries not just for parsing the AST, but to go a step further and request the compilation of the header-defined function directly into LLVM Intermediate Representation (IR). By operating at the compiler level rather than the linker level, this strategy completely sidesteps the complexities of C's linkage rules. It can correctly handle `static`, `inline`, and `static inline` functions with equal fidelity. This IR can then be consumed by the new language's compiler and inlined directly at the call site.
+\end{itemize}
+For Hylo, which prioritizes performance and seamless "zero-cost" abstractions, our proposed architecture adopts the \textbf{Direct LLVM IR Emission} strategy. While more complex to implement, this approach is superior as it allows for true cross-language inlining without relying on linker optimizations, perfectly aligning with the goal of high-fidelity interoperability.
+
+
+- Old Draft: - 
+
+\textbf{Easy solution:} generate a wrapper header and .c and .h file that wraps the inline functions into non-inline wrappers, you can compile the .c file separately using your compiler of choice (whatever extension it has), and then use the generated .h file to import your functions from. LTO makes this most likely a good solution.
+
+\textbf{Hard solution:} ask Clang to parse and lower the inline functions to LLVM IR which can be inlined into the Hylo call site. Swift probably does this.
+
+TODO merge drafts, get notes from Obsidian and turn it into a nice text.
+
+\subsection{Macros}
+
+\subparagraph{Use cases for macros}
+C Macros are a major challenge due to their textual nature (operator precedence, duplicating side-effects, lack of types).
+Some macros (e.g., constants) can be handled, but function-like macros are complex and also when macros reference each other.
+Directly translating them is an open research problem, and developing a solution for Hylo should involve collaboration and feedback with researchers.
+
+
+It's a research area of its own, and therefore out of scope for this paper. We have some novel ideas like mapping \_Generic selection to traits, but we haven't explored the problem space in depth.
+
+Relevant papers:
+[[Towards Macro-Aware C-to-Rust Transpilation (WIP)]]
+ - abstract: The automatic translation of legacy C code to Rust presents significant challenges, particularly in handling preprocessor macros. C macros introduce metaprogramming constructs that operate at the text level, outside of C's syntax tree, making their direct translation to Rust non-trivial. Existing transpilers --- source-to-source compilers --- expand macros before translation, sacrificing their abstraction and reducing code maintainability. In this work, we introduce Oxidize, a macro-aware C-to-Rust transpilation framework that preserves macro semantics by translating C macros into Rust-compatible constructs while selectively expanding only those that interfere with Rust's stricter semantics. We evaluate our techniques on a small-scale study of real-world macros and find that the majority can be safely and idiomatically transpiled without full expansion.
+
+[[Semantic Analysis of Macro Usage for Portability]]
+ - abstract: C is an unsafe language. Researchers have been developing tools to port C to safer languages such as Rust, Checked C, or Go. Existing tools, however, resort to preprocessing the source file first, then porting the resulting code, leaving barely recognizable code that loses macro abstractions. To preserve macro usage, porting tools need analyses that understand macro behavior to port to equivalent constructs. But macro semantics differ from typical functions, precluding simple syntactic transformations to port them. We introduce the first comprehensive framework for analyzing the portability of macro usage. We decompose macro behavior into 26 fine-grained properties and implement a program analysis tool, called Maki, that identifies them in real-world code with 94\% accuracy. We apply Maki to 21 programs containing a total of 86,199 macro definitions. We found that real-world macros are much more portable than previously known. More than a third (37\%) are easy-to-port, and Maki provides hints for porting more complicated macros. We find, on average, 2x more easy-to-port macros and up to 7x more in the best case compared to prior work. Guided by Maki's output, we found and hand-ported macros in four real-world programs. We submitted patches to Linux maintainers that transform eleven macros, nine of which have been accepted.
+
+[[CppSig - Extracting Type Information for C-Preprocessor Macro Expansions]]
+- abstract: For decades, the C programming language proved to be a cornerstone of system-software ecosystems, leaving us with billion lines of existing source code. From today's perspective of object-oriented and functional languages, C itself seems rather limited in its expressiveness and abstractive power. However, with the C preprocessor (CPP) as its companion, macros, which operate on the raw token stream, allow for abstractions that are impossible to achieve within the language itself. While its flexibility and its ease of use make CPP attractive for programmers, its potential undisciplined usage makes it problematic for static source-code analysis and can slow down the on-boarding of new developers.
+In this paper, we focus on a disciplined subclass of CPP macros: the statement-like and expression-like macros, which mimic regular C functions, with well-type C expressions as arguments and, in case, a return value. We show how to spot such macros and their arguments in the compiler's abstract syntax tree, whereby it becomes possible to deduct type signatures for individual macro expansions. With our CppSig prototype, implemented as a Clang plugin, we extract macro-type information from Linux 5.12, whereby it becomes easier to understand even deep macro-expansion nests. In the future, these expansion signatures could be used to statically enforce gradually-typed CPP macro definitions.
+
+Usage of macros: \cite{usage-of-macros-study}
+
+cmacro-rs is an interesting effort to translate C macros to Rust, similar to Oxidize.,
+
+Two solutions in Rust: when translating C source code to Rust, they usually expand macros (C2Rust). Oxidize is smarter than that. But it relies on arbitrary C code translation. Anyways, until Hylo gets macros, full macro translation is out of scope. But some macros could be translated to Hylo functions, e.g. taking generics as input. 
+
+% \begin{itemize}
+%     \item \textbf{constants} (easy to import with a default inferred type like Swift)
+%     \item \textbf{named untyped literal constants} that only get a type when inserting them in a context - not so necessary, user could insert conversion if needed when using it
+%     \item \textbf{inline functions} - used quite frequently, so I'd think they would be priority - but there may be some limitations on what kinds of macros we should accept, inferring upper bound on parameter types might be tricky. Also, question arises which operator precedence should be taken - textual replacement or adding logical parenthesis around variables.
+%     \begin{itemize}
+%         \item challenges:
+%         \begin{itemize}
+%             \item operator precedence and parenthesizing
+%             \item duplication of side-effects vs capturing arguments (by value vs by reference?)
+%             \item lack of types on the arguments - it would require inference on the possible input types
+%         \end{itemize}
+%     \end{itemize}
+%     \item \textbf{function call to `\_Generic` selection}: can be easily imported to individual overloaded Hylo functions calling the various different C functions
+%     \item \textbf{generating a function/struct declarations}, \textbf{enum cases} by generating code (stringification, token pasting, \href{https://en.wikipedia.org/wiki/X_macro}{X macro} idiom) - I wouldn't think this would be feasible nor desirable in the other language, but one can have the macro usage in a C file, and just import the resulting declarations into the other language. This may be an impractical restriction, I haven't worked enough with C libraries to estimate the effect.
+%     \item \textbf{generating custom control flow structures} (e.g. something that needs an early return on failure) - I think it's again not desirable to import such constructs, it would make sense to implement control flow in the other language's idiomatic ways.
+% \end{itemize}
+
+Macro refolding technique with LLM and then verification of equivalence: https://www.galois.com/articles/using-gpt-4-to-assist-in-c-to-rust-translation
+
+\subsection{Synthesizing Core Trait Conformances}
+
+Hylo offers a set of core traits that are fundamental to the language's memory and lifetime management, including \texttt{Copyable}, \texttt{Movable}, \texttt{Deinitializable}, \texttt{Equatable}, and \texttt{Hashable}. To add these capabilities to a standard Hylo struct, a developer must explicitly declare conformance to the desired traits. The compiler can then automatically synthesize the necessary implementations, provided that all of the struct's members also conform to those traits. This implementation can be manually overridden if needed.
+
+While it might seem practical to apply this synthesis to C types—for instance, by using a heuristic such as checking if a C struct contains any pointers—doing so would introduce hidden, implementation-defined promises that could hinder library evolution. A developer must remain conscious of the capabilities assigned to imported C types and determine whether a default implementation is sufficient or if a custom one is required.
+
+This challenge is evident in existing tools. For example, Rust's bindgen attempts to derive \texttt{Copy} and \texttt{Clone} traits automatically on a best-effort basis, allowing users to opt out as needed\cite{bindgen-nocopy}. However, this approach can lead to incorrect value semantics, such as when a type containing pointers to heap-allocated data is mistakenly marked as copyable\footnote{See an example for an incorrectly derived Copy/Clone conformance: \url{https://gist.github.com/tothambrus11/b5800ecaf1a7e6510eca2c7acc960cf6}}.
+
+Therefore, we propose a more deliberate approach for Hylo. Developers can either write the trait conformances for C types manually or use an auxiliary tool to generate the declarations based on conservative heuristics. Regardless of the method chosen, we encourage developers to check the resulting code into their repository and take ownership of it. This practice avoids integrating trait derivations into the build process directly. Should subsequent changes to the original C declarations—such as adding a pointer to a struct—invalidate the initial assumptions, the compiler can emit a warning to alert the developer as proposed in \cite{hylo-trait-ptr-conformance-warning}.
 
 \subsection{Customization and Ambiguous Mappings}
 
 A core principle of our design is acknowledging that a single, direct mapping is often insufficient. Many C constructs are used to represent different semantic ideas. A prime example is the C \texttt{enum}. It can represent:
 \begin{enumerate}
     \item A set of mutually exclusive cases \(\rightarrow\) translate to a Hylo enum for proper exhaustiveness checking
-    \item A collection of independent bitflags \(\rightarrow\) translate to an \texttt{OptionSet} \cite{optionset} for easy combination and checking of binary flags.
+    \item A collection of independent bitflags \(\rightarrow\) translate to an \texttt{OptionSet} \cite{OptionSet} for easy combination and checking of binary flags.
     \item A simple group of named integer constants. \(\rightarrow\) translate to a Hylo namespace with constants.
 \end{enumerate}
 A rigid mapping to a single Hylo construct would be un-idiomatic in at least two of these cases. Therefore, our design proposes a system of \textbf{sensible defaults with user-customizable overrides.} By default, an \texttt{enum} might be imported as a struct of static constants, which is always safe. However, the developer can provide an annotation (e.g., in a separate configuration file or directly in the C header if they have ownership) to guide the mapping:

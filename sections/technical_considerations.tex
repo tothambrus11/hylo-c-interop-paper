@@ -1,12 +1,5 @@
 \section{Technical Considerations and Architecture of C Interoperability Technology in Hylo}
 
-\subsubsection{Handling Inline C Functions}
-\label{sec:handling_inline_c_functions}
-- Draft - 
-
-\textbf{Easy solution:} generate a wrapper header and .c and .h file that wraps the inline functions into non-inline wrappers, you can compile the .c file separately using your compiler of choice (whatever extension it has), and then use the generated .h file to import your functions from. LTO makes this most likely a good solution.
-
-\textbf{Hard solution:} ask Clang to parse and lower the inline functions to LLVM IR which can be inlined into the Hylo call site. Swift probably does this.
 
 
 
@@ -24,7 +17,7 @@
 
 
 \subsection{Transparent Cross-Language IDE Features}
-Draft: In statically compiled languages, so far Swift's solution is by far the best. They created Sourcekit-LSP (language server protocol) that provides a rich set of features like code completion, symbol renaming, cross-language navigation, and debugging. It is built on top of the ClangD (the C/C++ language server) and SourceKitD, Swift's language server. Sourcekit-LSP is a part of the Swift toolchain, and it is used by Xcode, VSCode, and other editors. TODO describe how this works, what's the architecture, and whether it needs modifications to clangd or we can just use and wrap it in Hylo-LSP.
+Draft: In statically compiled languages, so far Swift's solution is by far the best. They created SourceKit-LSP (language server protocol) that provides a rich set of features like code completion, symbol renaming, cross-language navigation, and debugging. It is built on top of the ClangD (the C/C++ language server) and SourceKitD, Swift's language server. SourceKit-LSP is a part of the Swift toolchain, and it is used by Xcode, VSCode, and other editors. TODO describe how this works, what's the architecture, and whether it needs modifications to clangd or we can just use and wrap it in Hylo-LSP.
 
 Include nice architecture diagram.
 
