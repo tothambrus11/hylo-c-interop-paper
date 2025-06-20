@@ -16,12 +16,73 @@
   urldate = {2025-04-26}
 }
 
+@online{c2rust,
+  title   = {C2Rust: Migrating Legacy Code to Rust},
+  author  = {Per Larsen},
+  year    = {2018},
+  note    = {Presented at RustConf},
+  url     = {https://www.youtube.com/watch?v=WEsR0Vv7jhg},
+  urldate = {2025-06-20}
+}
+
+@online{corrode,
+  title   = {Corrode: C to Rust Translator},
+  author  = {Jamey Sharp},
+  year    = {2017},
+  url     = {},
+  urldate = {2025-06-20}
+}
+
 @online{carbon-interop-goals,
   title   = {Interoperability Philosophy and Goals},
   author  = {Carbon Contributors},
   year    = {2023},
   url     = {https://github.com/carbon-language/carbon-lang/blob/77afd0678baae83da8610dddff286739d271e18e/docs/design/interoperability/philosophy_and_goals.md#carbon-inheritance-from-c-types},
   urldate = {2025-05-30}
+}
+
+@online{rust-macro-refolding,
+  title       = {Using GPT-4 to Assist in C to Rust Translation},
+  author      = {Adam Karvonen},
+  institution = {Galois},
+  year        = {2023},
+  url         = {https://www.galois.com/articles/using-gpt-4-to-assist-in-c-to-rust-translation},
+  urldate     = {2025-06-20}
+}
+
+@inproceedings{oxidize-wip,
+  author    = {De Greef, Robbe and Discepoli, Attilio and Aguililla Klein, Esteban and Engels, Th\'{e}o and Hasselmann, Ken and Paolillo, Antonio},
+  title     = {Towards Macro-Aware C-to-Rust Transpilation (WIP)},
+  year      = {2025},
+  isbn      = {9798400719219},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi-org.tudelft.idm.oclc.org/10.1145/3735452.3735535},
+  doi       = {10.1145/3735452.3735535},
+  abstract  = {The automatic translation of legacy C code to Rust presents significant challenges, particularly in handling preprocessor macros.   C macros introduce metaprogramming constructs that operate at the text level, outside of C's syntax tree, making their direct translation to Rust non-trivial.   Existing transpilers --- source-to-source compilers --- expand macros before translation, sacrificing their abstraction and reducing code maintainability.   In this work, we introduce Oxidize, a macro-aware C-to-Rust transpilation framework that preserves macro semantics by translating C macros into Rust-compatible constructs while selectively expanding only those that interfere with Rust's stricter semantics.  We evaluate our techniques on a small-scale study of real-world macros and find that the majority can be safely and idiomatically transpiled without full expansion.},
+  booktitle = {Proceedings of the 26th ACM SIGPLAN/SIGBED International Conference on Languages, Compilers, and Tools for Embedded Systems},
+  pages     = {5-61},
+  numpages  = {5},
+  keywords  = {Abstract Syntax Tree, C, Embedded, Macros, Metaprogramming, Preprocessor, Rust, Transpilation},
+  location  = {Seoul, Republic of Korea},
+  series    = {LCTES '25}
+}
+
+@inproceedings{cppsig,
+  author    = {Dietrich, Christian},
+  title     = {CppSig: Extracting Type Information for C-Preprocessor Macro Expansions},
+  year      = {2021},
+  isbn      = {9781450387071},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi-org.tudelft.idm.oclc.org/10.1145/3477113.3487268},
+  doi       = {10.1145/3477113.3487268},
+  abstract  = {For decades, the C programming language proved to be a cornerstone of system-software ecosystems, leaving us with billion lines of existing source code. From today's perspective of object-oriented and functional languages, C itself seems rather limited in its expressiveness and abstractive power. However, with the C preprocessor (CPP) as its companion, macros, which operate on the raw token stream, allow for abstractions that are impossible to achieve within the language itself. While its flexibility and its ease of use make CPP attractive for programmers, its potential undisciplined usage makes it problematic for static source-code analysis and can slow down the on-boarding of new developers.In this paper, we focus on a disciplined subclass of CPP macros: the statement-like and expression-like macros, which mimic regular C functions, with well-type C expressions as arguments and, in case, a return value. We show how to spot such macros and their arguments in the compiler's abstract syntax tree, whereby it becomes possible to deduct type signatures for individual macro expansions. With our CppSig prototype, implemented as a Clang plugin, we extract macro-type information from Linux 5.12, whereby it becomes easier to understand even deep macro-expansion nests. In the future, these expansion signatures could be used to statically enforce gradually-typed CPP macro definitions.},
+  booktitle = {Proceedings of the 11th Workshop on Programming Languages and Operating Systems},
+  pages     = {62-68},
+  numpages  = {7},
+  location  = {Virtual Event, Germany},
+  series    = {PLOS '21}
 }
 
 @online{swift-cpp-post-hoc-conformance,
@@ -38,6 +99,45 @@
   year    = {2022},
   url     = {https://hylo-lang.org/},
   urldate = {2025-05-30}
+}
+
+@online{vla-reddit,
+  title   = {Are variable length arrays bad? When or when not should I use them?},
+  author  = {tstanisl},
+  year    = {2022},
+  url     = {https://www.reddit.com/r/C_Programming/comments/yigtue/are_variable_length_arrays_bad_when_or_when_not/},
+  urldate = {2025-06-20}
+}
+
+@online{carrays,
+  title   = {Array Declaration - cppreference.com},
+  author  = {C++ Reference Contributors},
+  year    = {2025},
+  url     = {https://cppreference.com/w/c/language/array.html},
+  urldate = {2025-06-20}
+}
+
+@online{rust-variadic-ffi,
+  title   = {Variadic Functions - FFI - The Rustonomicon},
+  author  = {Rust Contributors},
+  year    = {2025},
+  url     = {https://doc.rust-lang.org/nomicon/ffi.html#variadic-functions},
+  urldate = {2025-06-20}
+}
+
+@online{swift-variadic-ffi,
+  title   = {Use a CVaListPointer to Call Variadic Functions - Apple Developer Documentation},
+  author  = {Apple Inc.},
+  year    = {2025},
+  url     = {https://developer.apple.com/documentation/swift/using-imported-c-functions-in-swift#Use-a-CVaListPointer-to-Call-Variadic-Functions},
+  urldate = {2025-06-20}
+}
+@online{wrapping-valist,
+  title   = {},
+  author  = {},
+  year    = {2022},
+  url     = {https://bumbershootsoft.wordpress.com/2022/07/24/custom-printf-wrapping-variadic-functions-in-c/},
+  urldate = {2025-06-20}
 }
 
 @techreport{P3477R1,
@@ -307,7 +407,22 @@
   title   = {Proposal: Warning for Default Trait Implementations on Structs with Pointers \#1711},
   year    = {2025},
   url     = {https://github.com/orgs/hylo-lang/discussions/1711},
-  urldate = {2025-06-19}   
+  urldate = {2025-06-19}
+}
+@online{bindgen-cmacro-rs,
+  author  = {Markus Reiter},
+  title   = {Support complex macros. \#2369 - Rust Bindgen},
+  year    = {2024},
+  url     = {https://github.com/rust-lang/rust-bindgen/pull/2369},
+  urldate = {2025-06-19}
+}
+}
+@online{cmacro-rs,
+  author  = {Markus Reiter},
+  title   = {cmacro-rs: A C macro parser, evaluator and code generator},
+  year    = {2024},
+  url     = {https://github.com/reitermarkus/cmacro-rs},
+  urldate = {2025-06-19}
 }
 
 @book{eop,
@@ -340,3 +455,19 @@
   type        = {Technical Report},
   note        = {Section 2.1, "A Portable Architectural Protection Model"}
 }
+
+@inproceedings{Pappas_2024,
+  series     = {ICSE '24},
+  title      = {Semantic Analysis of Macro Usage for Portability},
+  url        = {http://dx.doi.org/10.1145/3597503.3623323},
+  doi        = {10.1145/3597503.3623323},
+  booktitle  = {Proceedings of the IEEE/ACM 46th International Conference on Software Engineering},
+  publisher  = {ACM},
+  author     = {Pappas, Brent and Gazzillo, Paul},
+  year       = {2024},
+  month      = feb,
+  pages      = {1-12},
+  collection = {ICSE '24}
+}
+
+

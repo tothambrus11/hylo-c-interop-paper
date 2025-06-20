@@ -41,12 +41,27 @@ TODO discuss what responsibilities are there to correctly call functions and lay
 
 todo: describe what are the inherent things that need to be different in ABIs based on different architectures, and what are imposed by the OS and the C language. Mention the problem of compilers incorrectly implementing ABIs which sometimes necessitates the interop tool to implement workarounds for specific compilers or platforms (link Emilio interview).
 
+todo: describe the option to add wrapper function
 \subsubsection{Handling Challenging C Constructs}
 
 
 \subsubsection{IDE Integration}
 
-A seamless developer experience requires that IDE features like code completion, go-to-definition, and renaming work across the C/Hylo boundary. Our design proposes the creation of a Hylo Language Server that acts as a proxy, coordinating with `clangd`, the official C/C++ language server for the LLVM project. When a request is made for a symbol defined in C, the Hylo LSP would forward the request to `clangd` and translate the response. This architecture, inspired by Swift's SourceKit-LSP, allows Hylo to benefit from the full power of `clangd` without having to reimplement its functionality.
+A seamless developer experience requires that IDE features like code completion, go-to-definition, and renaming work across the C/Hylo boundary. Our design proposes the creation of a Hylo Language Server that acts as a proxy, coordinating with \texttt{clangd}, the official C/C++ language server for the LLVM project. When a request is made for a symbol defined in C, the Hylo LSP would forward the request to \texttt{clangd} and translate the response. This architecture, inspired by Swift's SourceKit-LSP, allows Hylo to benefit from the full power of \texttt{clangd} without having to reimplement its functionality.
 
-TODO include nice diagram, illustrate how symbol renaming works as an example, and check if modifications are needed in clangd or it can be used as is.
+TODO include nice diagram, illustrate how symbol renaming works as an example, and check if modifications are needed in \texttt{clangd} or it can be used as is.
 
+
+\subsection{Customization and Ambiguous Mappings}
+
+A core principle of our design is acknowledging that a single, direct mapping is often insufficient. Many C constructs are used to represent different semantic ideas. A prime example is the C \texttt{enum}. It can represent:
+\begin{enumerate}
+    \item A set of mutually exclusive cases \(\rightarrow\) translate to a Hylo enum for proper exhaustiveness checking
+    \item A collection of independent bitflags \(\rightarrow\) translate to an \texttt{OptionSet} \cite{OptionSet} for easy combination and checking of binary flags.
+    \item A simple group of named integer constants. \(\rightarrow\) translate to a Hylo namespace with constants.
+\end{enumerate}
+A rigid mapping to a single Hylo construct would be un-idiomatic in at least two of these cases. Therefore, our design proposes a system of \textbf{sensible defaults with user-customizable overrides.} By default, an \texttt{enum} might be imported as a struct of static constants, which is always safe. However, the developer can provide an annotation (e.g., in a separate configuration file or directly in the C header if they have ownership) to guide the mapping:
+
+This principle of user-guided mapping extends to other areas, such as specifying that a C function returning an integer error code should be imported as a Hylo function that \texttt{throws}. This empowers developers to create bindings that are not only correct but also safe and highly idiomatic.
+
+TODO describe the rules file vs inline annotations (comments vs attributes)

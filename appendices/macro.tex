@@ -1,0 +1,14 @@
+\section{Appendix: State of the Art of C Macro Importing and Translation}
+\label{app:macro}
+Despite the error-prone and highly flexible nature of C macros, many of the macros used in C libraries conform to certain patterns and thus could be ported easier as shown by \cite{Pappas_2024}. An empirical study has also established a taxonomy of types of macros by analysing large code bases\cite{usage-of-macros-study} to aid development of tools manipulating C programs. Language interop technologies used by the industry leverage various heuristics to detect and import different kinds of C macros.
+
+Rust Bindgen, Zig and Swift support importing C's \texttt{\#define} macros that are constants, even ones containing simple expressions and dependent on other constant-like macros. They are translated to a constant whose type is inferred from the value to a suitable type. Zig also supports function-like macros, which are translated to Zig inline functions.
+
+A significant ongoing effort in Rust Bindgen aims to add support for more complex macros, supporting function-like macros, token pasting, stringification and expression evaluation\cite{bindgen-cmacro-rs}. This approach relies on translating C macros to either functions or to Rust macros, which provide the necessary flexibility in many use cases.
+
+Other approaches emerged in the context of full $C \rightarrow Rust$ source-to-source translation efforts: while C2Rust \cite{c2rust} and Corrode\cite{corrode} only translates the already preprocessed C code where macros are already expanded, Oxidize\cite{oxidize-wip} presents a technique to translate most C macros to Rust-compatible constructs and thus minimize the number of places where expansion is necessary before translation. Another approach is to fully expand macros, then use LLMs to refold them into more idiomatic Rust constructs to reintroduce abstractions. Then the refolded code is verified for equivalence to the original C code\cite{rust-macro-refolding}.
+
+When translating function-like macros to regular functions, it is important to establish the correct parameter types. Since these may not be evident from the macro definition, CppSig\cite{cppsig} extracts type signatures by analyzing their usage in an existing code base -- mainly for code comprehension for developers, but this work could be useful for aiding automatic translators.
+
+
+

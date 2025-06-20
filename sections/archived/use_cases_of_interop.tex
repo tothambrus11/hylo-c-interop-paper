@@ -1,6 +1,6 @@
 \section {Background: Use Cases of C/C++ Interoperability}
 \label{sec:use_cases_of_interop}
-TODO: write introduction, add references to Rust, Swift, Zig and D for their suitability in different use cases within the sections.
+TO DO: write introduction, add references to Rust, Swift, Zig and D for their suitability in different use cases within the sections.
 
 \subsection{Leveraging OS APIs}
 
@@ -16,9 +16,9 @@ Direct interoperability with other higher-level systems programming languages li
 \subsection{Hylo as a C++ Successor}
 Hylo's goal is to prove that mutable value semantics can provide safety and simplicity without compromising the performance of C and C++\cite{hylo-lang}. This requires that most problems that C++ is used for can be expressed in Hylo efficiently. While our hypothesis is that Hylo will be great for starting new projects, integrating into an existing project without rearchitecting it to avoid aliasing mutable state is challenging  due to Hylo's stricter semantics.
 
-An ideal successor language would allow \textbf{unordered, incremental adoption} with bi-directional interoperability\cite{requirements-for-cpp-successor-languages}, meaning that C++ components could be gradually replaced with Hylo components without having to migrate all its dependencies first. Carbon and Swift aim to support this with features like allowing Carbon types to inherit from C++ types\cite{carbon-interop-goals} or allowing to conform C++ types to Swift protocols\cite{swift-cpp-post-hoc-conformance}, however there are many limitations, and this is still an open research area. TODO add citation to Swift limitations, and mention Zngur's approach.
+An ideal successor language would allow \textbf{unordered, incremental adoption} with bi-directional interoperability\cite{requirements-for-cpp-successor-languages}, meaning that C++ components could be gradually replaced with Hylo components without having to migrate all its dependencies first. Carbon and Swift aim to support this with features like allowing Carbon types to inherit from C++ types\cite{carbon-interop-goals} or allowing to conform C++ types to Swift protocols\cite{swift-cpp-post-hoc-conformance}, however there are many limitations, and this is still an open research area. TO DO add citation to Swift limitations, and mention Zngur's approach.
 
-There is also an apparent \textbf{trade-off between the expressiveness of the mapped subset of C++ and the "purity" of the new language}. Mapping foreign constructs may require the new language to be extended with language or library features that circumvent the safety guarantees and value semantics. If the usage of such constructs is only allowed in an unsafe context, much of the Hylo code interacting with the C++ side would need to be marked as unsafe, which would increase the noise without providing much value. (Todo relate this to Zngur's approach. Maybe no need to talk about solutions here though, but Zngur's approach is quite a big mindset shift.)
+There is also an apparent \textbf{trade-off between the expressiveness of the mapped subset of C++ and the "purity" of the new language}. Mapping foreign constructs may require the new language to be extended with language or library features that circumvent the safety guarantees and value semantics. If the usage of such constructs is only allowed in an unsafe context, much of the Hylo code interacting with the C++ side would need to be marked as unsafe, which would increase the noise without providing much value. (To do relate this to Zngur's approach. Maybe no need to talk about solutions here though, but Zngur's approach is quite a big mindset shift.)
 
 \textbf{Integration to the existing developer ecosystem}, from IDEs to build is also crucial for commercial adoption in large projects. Debugging, profiling, testing workflows and language server features across boundaries shall be supported.\cite{requirements-for-cpp-successor-languages} If Hylo will have its own build systems, it shall shall support building existing C++ dependencies, but building Hylo code shall be supported in existing C++ build systems like CMake, Bazel and Meson to ease adoption in existing projects.
 
@@ -29,7 +29,7 @@ These Hylo-generated libraries would adhere to C++ best practices, including lev
 
 Some limitations arise due to the differences between the generics systems' semantics, e.g. with regards to specializations, whose implications would need further exploration.
 
-TODO: mention similar technologies that do this.
+TO DO: mention similar technologies that do this.
 
 \subsection{Exposing Hylo Libraries Through a C API}
 
@@ -47,16 +47,16 @@ Exposing a C API may be done in various ways:
   \begin{itemize}
   \item You still need to annotate your exposed data structures and functions as C compatible, but the header files are automatically generated based on your public C-compatible declarations. See Rust's CBindgen.
   \item Example: C - Go interop (CGO)
-  \item This is a desirable improvement over the manual approach, but it can be added on top of the manual approach without requiring any changes to the language (see Rust's CBindgen). %todo add ref
+  \item This is a desirable improvement over the manual approach, but it can be added on top of the manual approach without requiring any changes to the language (see Rust's CBindgen). %to do add ref
   \end{itemize}
 \item \textbf{Automatically}
   \begin{itemize}
-  \item When writing your library, you don't need to think about making your structs and functions C-compatible - everything is handled for you automatically. This is hard for more complex languages, see concerns raised on this forum: \url{https://forums.swift.org/t/formalizing-cdecl/40677}. (todo)
+  \item When writing your library, you don't need to think about making your structs and functions C-compatible - everything is handled for you automatically. This is hard for more complex languages, see concerns raised on this forum: \url{https://forums.swift.org/t/formalizing-cdecl/40677}. (to do)
   \item Since this C API will likely have many users, it is crucial to not make this a fragile API. The developer should be notified about C ABI breakages when publishing a new release.
   \item Examples:
     \begin{itemize}
     \item Fusion (transpilation to C)
-    \item Embedded C scripting languages (TODO)
+    \item Embedded C scripting languages (TO DO)
     \end{itemize}
   \end{itemize}
 \end{enumerate}
@@ -71,7 +71,7 @@ Some technologies also decided to not support declaring C structs in the new lan
 \end{itemize}
 \subsection{Use Cases Discarded}
 \begin{itemize}
-  \item \textbf{Hylo as an embedded scripting language:} multiple embedded scripting languages support great interoperability with C++ such as Hobbes and ChaiScript. %todo reference
+  \item \textbf{Hylo as an embedded scripting language:} multiple embedded scripting languages support great interoperability with C++ such as Hobbes and ChaiScript. %to do reference
   However, Hylo is designed to be beneficial for medium to large scale projects, and would provide no significant benefit over existing embedded scripting languages, so we can discard this use case.
   \item \textbf{C/C++ Interop for additional performance:} Hylo is designed as a high-performance system programming language, meaning that unlike managed languages (e.g. Python, NodeJS), it doesn't need to interoperate with C/C++ for improved performance.
   \item \textbf{Hylo as a C Successor:} While Hylo aims to leave no room for a lower-level language to achieve additional performance, its design discourages unsafe operations through reduced ergonomics, such as the absence of a dedicated pointer syntax. For problems inherently requiring frequent unsafe operations, this design choice could hinder productivity without offering significant advantages over simpler languages like Zig, C3, or Odin. In such scenarios, these alternatives might prove more suitable, and C interoperability could be used to expose their functionalities to Hylo.
@@ -79,7 +79,7 @@ Some technologies also decided to not support declaring C structs in the new lan
 \item \textbf{Evolving C++}\\
   C++'s unopinionated design—its greatest strength—lets developers express nearly anything, supporting multiple programming paradigms. This ensures its continued relevance. However, decades of rapid complexity growth have made the language increasingly difficult to manage.
 
-  %$ todo add reference to circle and carbon
+  %$ to do add reference to circle and carbon
   While efforts like Carbon and Circle aim to evolve C++, Hylo takes a different approach. Instead of directly extending C++, Hylo offers a more constrained programming model, prioritizing safety and simplicity. We believe Hylo can solve the majority of C++'s use cases with greater simplicity, safety, and consistency. Like Rust, certain problems will remain easier to tackle in C++, but our goal is to minimize that subset.
 \end{itemize}
 
