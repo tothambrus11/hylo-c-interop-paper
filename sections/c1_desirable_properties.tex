@@ -1,12 +1,6 @@
-\section{Desirable Properties of a High-Fidelity C Interoperability Layer}
+\section{Design Goals for High-Fidelity Interoperability}
 \label{sec:desirable_properties}
-\subsection{Use Cases}
-\begin{itemize}
-    \item \textbf{Communicating with OS}
-    \item \textbf{Using existing libraries and bootstrapping the Hylo ecosystem} - user has no control over the sources, modifying them is not an option
-    \item \textbf{Using Hylo in an existing C project} -> translation is also beneficial, see Oxidize, C2Rust, CRust, Corrode. Support function-by-function translation, so that the code can be incrementally translated to Hylo. Also, the user has full ownership of this code for modification.
-    \item \textbf{Exposing Hylo libraries through C APIs} - as Hylo becomes popular, exposing Hylo libraries to other languages will be the easiest through a C interface.
-\end{itemize}
+
 \subsection{Validation and Automation}
 Manual FFI writing is error-prone; we aim to avoid inconsistencies, detect errors early, but even better to provide as much automation as possible.
 
@@ -35,8 +29,7 @@ The primary sources of language differences are as follows:
 TODO: additional source of differences is conditional compilation, which needs to be handled by the interop tool (just allow specifying given conditions)
 
 \subsection{Scalable Maintenance}
-maintaining a library/application that uses C interop for multiple platforms should be easy
-
+TODO rephrase: Maintaining a library/application that uses C interop for multiple platforms should be easy. We shouldn't try to replicate implementation-defined behavior of various C compilers or specific logic for each ABI's handling.
 
 \subsection{Control and Customizability}
 There is in fact one more kind of dialect: the semantic meaning of standard C code itself. Unlike C++, C doesn't provide many features for type based abstraction: In C, error conditions are often signaled using special return values (like negative numbers or null pointers) or by setting a global variable. Additionally, C enums frequently serve as bit flags, where individual constants are powers of two, allowing values to represent combinations of these flags. Mapping this loose semantics to stronger types requires additional guidance from the user to avoid ambiguity.

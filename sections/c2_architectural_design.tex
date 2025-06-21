@@ -7,25 +7,14 @@
 To address the challenges outlined above, we propose a Clang-based architectural design for Hylo's C interoperability tooling. This architecture prioritizes fidelity and automation by leveraging the rich semantic information provided by an industrial-strength compiler front-end.
 
 \subsubsection{Parsing Technology: A Clang-Based Approach}
-
-Generating accurate bindings requires a high-fidelity parser for the C language. While various tools exist, a comparative analysis reveals that leveraging the Clang compiler front-end is the most robust approach. Compilers like GCC offer introspection capabilities through plugins or intermediate representations, but these are often less stable or comprehensive than Clang's libraries. Microsoft's MSVC compiler has historically offered limited public APIs for AST introspection.
-Clang, by contrast, provides stable C and C++ libraries (LibClang, LibTooling) designed for building tools that require deep semantic understanding of C-family languages. By using a Clang-based parser, the Hylo interoperability tool can:
-
-\begin{itemize}
-    \item Accurately parse a wide range of C dialects and compiler-specific extensions by configuring the Clang front-end with the same flags used to compile the target library.
-    \item Gain access to a complete and accurate Abstract Syntax Tree (AST), including type information, source locations, and macro expansions.
-\end{itemize}
-
-\textit{TODO: describe various options for parsing C headers, including the comparison for MSVC, GCC, Clang's capabilities regarding AST introspection, C++26 static reflection and macro and template based meta programming based solutions. Spoiler: Clang is the best option, which supports various dialects (including some MSVC and GCC extensions), supports parsing various C standard versions, and can be configured with the exact compiler flags when parsing that they use for compilation. Compare various Clang library versions, including LibClang, Clang plugins, LibTooling and embedding the whole Clang compiler itself.
-}
-
+Generating accurate bindings requires a high-fidelity parser for the C language. While various tools exist, a comparative analysis presented in \autoref{app:c_ast_introspection_tools} reveals that leveraging the Clang compiler front-end is the most robust approach.
 \subsubsection{Architecture of Customizabile Mappings}
 TODO compare comment-based vs attribute based mappings, and describe rule files
 
 TODO move this to the relevant section
 
-\subsubsection{FFI Generation vs Direct AST Emission}
-TODO add nice diagram of the two types of architectures
+% \subsubsection{FFI Generation vs Direct AST Emission}
+% TODO add nice diagram of the two types of architectures
 
 
 \subsubsection{Declarations vs Opaque data + computed properties}

@@ -1,4 +1,19 @@
 \section{Related Work}
+\label{sec:related_work}
+\subsection{C Macro Importing and Translation}
+\label{ssec:macro}
 
-Introduce the most impactful and relevant academic studies related to interop, as well as focused ongoing work in the industry to find a proper solution for C++ interoperability with Rust. Put this work into perspective.
+Handling the C preprocessor presents a primary challenge for high-fidelity interoperability, creating a significant gap where progress requires analyzing the limitations of mainstream tools alongside state-of-the-art academic and experimental techniques. Despite this complexity, research shows that many macros in C libraries conform to analyzable patterns and can thus be ported more easily \cite{Pappas_2024}. An empirical study has also established a taxonomy of macro types by analyzing large codebases \cite{usage-of-macros-study}, which aids the development of tools that manipulate C programs. Building on these insights, language interoperability technologies used by the industry leverage various heuristics to detect and import different kinds of C macros with varying fidelity.
 
+Rust Bindgen, Zig, and Swift support importing C's \texttt{\#define} macros that represent constants, including ones that contain simple expressions or depend on other constant-like macros. These are translated into constants whose types are inferred from their values to be a suitable type. Zig also supports function-like macros, which are translated into Zig inline functions.
+
+A significant ongoing effort in Rust Bindgen aims to add support for more complex macros, including function-like macros, token pasting, stringification, and expression evaluation \cite{bindgen-cmacro-rs}. This approach relies on translating C macros into either functions or Rust macros, which provide the necessary flexibility in many use cases.
+
+Other approaches have emerged in the context of full $C \rightarrow Rust$ source-to-source translation efforts. While C2Rust \cite{c2rust} and Corrode \cite{corrode} only translate already preprocessed C code where macros are already expanded, Oxidize \cite{oxidize-wip} presents a technique to translate most C macros into Rust-compatible constructs, thus minimizing the number of places where expansion is necessary before translation. Another approach is to fully expand macros and then use LLMs to refold them into more idiomatic Rust constructs to reintroduce abstractions. The refolded code is then verified for equivalence to the original C code \cite{rust-macro-refolding}.
+
+When translating function-like macros to regular functions, it is important to establish the correct parameter types. Since these may not be evident from the macro definition, CppSig \cite{cppsig} extracts type signatures by analyzing their usage in an existing codebase. While mainly intended for developers' code comprehension, this work could also be useful for aiding automatic translators.
+
+While existing tools have made significant strides in translating constant and simple function-like macros, handling the full complexity of the C preprocessor remains a major challenge. Achieving truly high-fidelity C interoperability therefore necessitates more sophisticated and robust macro translation mechanisms than are currently available in mainstream language tooling.
+
+
+Handling the C preprocessor presents a primary challenge for high-fidelity interoperability, creating a significant gap where progress requires analyzing the limitations of mainstream tools alongside state-of-the-art academic and experimental techniques. Despite this complexity, research shows that many macros in C libraries conform to analyzable patterns and can thus be ported more easily \cite{Pappas_2024}. An empirical study has also established a taxonomy of macro types by analyzing large codebases \cite{usage-of-macros-study}, which aids the development of tools that manipulate C programs. Building on these insights, language interoperability technologies used by the industry leverage various heuristics to detect and import different kinds of C macros with varying fidelity.
