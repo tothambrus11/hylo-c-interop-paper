@@ -1,12 +1,12 @@
 \section{Mapping C Constructs to Hylo}
 \label{sec:mapping_c_constructs}
 
-This section defines the core of our contribution: the rules for translating C declarations into idiomatic Hylo constructs.
+This section provides the detailed semantic mapping rules of C constructs to Hylo. These rules implement the architecture described in \autoref{sec:architectural_design}, providing reasonable defaults and alternative customization options for capturing the semantic details of C constructs in Hylo's type system.
 
 \subsection{Primitive Types}
 \subsubsection{Integer Types}
 \label{ssec:integer_types_mapping}
-The mapping of primitive types is foundational to interoperability. Mapping fixed-size integers (\texttt{uint8\_t}, \texttt{int32\_t}, etc.) and word-sized integers (\texttt{size\_t}/\texttt{ssize\_t}) is trivial, as they have an exact corresponding type in Hylo. A key challenge is that the size of C's standard integer types (\texttt{char}, \texttt{short}, \texttt{int}, \texttt{long}) are platform-dependent. For example, \texttt{char} is defined as an at least 8-bit wide, either signed or unsigned integer type, representing the smallest addressable unit of memory on the target (1 byte). Modern processors generally agree on 8-bit bytes, and the niche use cases regarding digital signal processors fail to support modern C/C++ standards, which lead to the proposal \cite{P3477R1} to define a byte having exactly 8 bits. Therefore, we chose to adopt the same strategy for Hylo. Still, the signedness of \texttt{char}, and the exact sizes of standard integer types vary per platform.
+The mapping of primitive types is foundational to interoperability. Mapping fixed-size integers (\texttt{uint8\_t}, \texttt{int32\_t}, etc.) and word-sized integers (\texttt{intptr\_t}/\texttt{uintptr\_t}) is trivial, as they have an exact corresponding type in Hylo. A key challenge is that the size of C's standard integer types (\texttt{char}, \texttt{short}, \texttt{int}, \texttt{long}) are platform-dependent. For example, \texttt{char} is defined as an at least 8-bit wide, either signed or unsigned integer type, representing the smallest addressable unit of memory on the target (1 byte). Modern processors generally agree on 8-bit bytes, and the niche use cases regarding digital signal processors fail to support modern C/C++ standards, which lead to the proposal \cite{P3477R1} to define a byte having exactly 8 bits. Therefore, we chose to adopt the same strategy for Hylo. Still, the signedness of \texttt{char}, and the exact sizes of standard integer types vary per platform.
 
 \input{sections/numeric_mappings_comparison}
 
