@@ -10,9 +10,9 @@ In this paper, drawing from a methodology that combines a review of industry tec
 Our contributions are:
 
 \begin{enumerate}
-    \item \textbf{A set of desirable properties for a high-fidelity C interoperability solution}, derived from an analysis of primary use cases and a review of existing state-of-the-art technologies. (\Autoref{sec:desirable_properties})   
+    \item \textbf{A set of design goals for a high-fidelity C interoperability solution}, derived from an analysis of primary use cases and a review of existing state-of-the-art technologies. (\Autoref{sec:desirable_properties})   
     \item \textbf{A detailed architectural design for Hylo's C interoperability tooling.} This includes a comparative analysis of C header parsing technologies, a proposed architecture for compiling C function calls by leveraging Clang and LLVM, and a plan for providing transparent cross-language IDE features. (\Autoref{sec:architectural_design})
-    \item \textbf{A comprehensive specification for mapping C constructs to Hylo.} This defines the semantic translation of primitive and composite types, pointers, and complex constructs like macros and inline functions. Crucially, it includes a design for mapping C's "semantic dialects" (e.g., enums used as bit flags) to stronger, idiomatic Hylo types, validated in part by targeted prototypes. (\Autoref{sec:mapping_c_constructs})
+    \item \textbf{A comprehensive specification for mapping C constructs to Hylo.} This defines the semantic translation of primitive and composite types, pointers, and constructs not present in Hylo like bit-fields, flexible array members and unions. Crucially, it includes a design for mapping C's "semantic dialects" (e.g., enums used as bit flags) to stronger, idiomatic Hylo types, validated in part by targeted prototypes. (\Autoref{sec:mapping_c_constructs})
 \end{enumerate}
 
 The remainder of this paper is structured as follows. Section 2 reviews the state-of-the-art and defines the desirable properties of a C interoperability layer. Section 3 presents our architectural design, followed by Section 4, which details the complete C-to-Hylo mapping specification. Section 5 validates our design through targeted prototypes. Finally, Section 6 discusses the implications and future work before we conclude."

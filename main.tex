@@ -22,7 +22,7 @@
 % \useunder{\uline}{\ul}{}
 \usepackage{changepage}
 
-\usepackage{biblatex}
+\usepackage[sorting=none]{biblatex}
 \addbibresource{references.bib}
 
 \geometry{verbose,tmargin=3.5cm,bmargin=4cm,lmargin=3.2cm,rmargin=3.2cm}
@@ -52,11 +52,14 @@
 \begin{document}
 \input{title_page}
 \onecolumn
+\pagenumbering{gobble}
 
 \clearpage
-\pagenumbering{arabic}
 
 \input{sections/abstract}
+\clearpage
+\pagenumbering{arabic}
+% \setcounter{page}{1} 
 
 \input{sections/introduction}
 
