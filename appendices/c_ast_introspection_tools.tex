@@ -1,15 +1,69 @@
 \section{Appendix: Comparison of C AST Introspection Tools for Binding Generation}
 \label{app:c_ast_introspection_tools}
-TODO finish
 
-Compilers like GCC offer introspection capabilities through plugins or intermediate representations, but these are often less stable or comprehensive than Clang's libraries. Microsoft's MSVC compiler has historically offered limited public APIs for AST introspection.
 
-Clang, by contrast, provides stable C and C++ libraries (LibClang, LibTooling) designed for building tools that require deep semantic understanding of C-family languages. By using a Clang-based parser, the Hylo interoperability tool can:
+Generating high-fidelity Foreign Function Interface (FFI) bindings requires a robust method for parsing C/C++ header files to introspect their Abstract Syntax Trees (AST). This analysis compares the capabilities of major C/C++ compilers and related technologies for this purpose.
 
+\subsection{Compiler Introspection Capabilities}
+
+\paragraph{Clang}
+Clang provides the most flexible and stable interfaces for building external tools. Its architecture is designed to support deep semantic analysis of C-family languages, making it the preferred choice for many interoperability projects. Key interfaces include:
 \begin{itemize}
-    \item Accurately parse a wide range of C dialects and compiler-specific extensions by configuring the Clang front-end with the same flags used to compile the target library.
-    \item Gain access to a complete and accurate Abstract Syntax Tree (AST), including type information, source locations, and macro expansions.
+    \item \textbf{LibClang:} A stable, C-based API that is easier to adopt but can be less performant than more direct interfaces. It is used by major tools like Rust's Bindgen.
+    \item \textbf{LibTooling:} A C++-based API that offers more power and performance by exposing Clang's internal representations. However, its API is unstable, often requiring tools to bundle a specific version of Clang.
+    \item \textbf{Clang Plugins:} Allow for deep integration but come with the overhead of an unstable API.
+    \item \textbf{Forking Clang:} The approach taken by Swift, which involves maintaining a fork of the entire LLVM/Clang project. This offers maximum flexibility, including the ability to add custom attributes for enhancing cross-language IDE features (e.g., \texttt{external\_source\_symbol}), but represents a significant maintenance commitment.
 \end{itemize}
 
-\textit{TODO: describe various options for parsing C headers, including the comparison for MSVC, GCC, Clang's capabilities regarding AST introspection, C++26 static reflection and macro and template based meta programming based solutions. Spoiler: Clang is the best option, which supports various dialects (including some MSVC and GCC extensions), supports parsing various C standard versions, and can be configured with the exact compiler flags when parsing that they use for compilation. Compare various Clang library versions, including LibClang, Clang plugins, LibTooling and embedding the whole Clang compiler itself.
-}
+\paragraph{GCC}
+While powerful, GCC's introspection capabilities are primarily exposed through plugins. These plugins provide sufficient information but have an unstable API and rely heavily on macros, making them more challenging to work with than Clang's libraries. There are efforts within the Bindgen community to support GCC for cases where Clang has compatibility issues with specific GCC-dependent libraries.
+
+\paragraph{MSVC}
+Microsoft's C++ compiler has historically offered limited, well-documented public APIs for full AST introspection suitable for FFI generation. While interfaces like the Debug Interface Access (DIA) SDK exist, they are not designed for the kind of source-level analysis required for binding generation.
+
+\subsection{Approaches in Existing Interoperability Frameworks}
+
+The choice of parsing technology varies widely across different frameworks, reflecting different design philosophies.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{p{0.22\textwidth} p{0.25\textwidth} p{0.45\textwidth}}
+\hline
+\textbf{Framework} & \textbf{Technology Used} & \textbf{Parsing Strategy} \\
+\hline
+Swift & Fork of Clang/LLVM & Directly embeds and modifies Clang to parse C/C++ headers, enabling deep integration and custom attributes. \\
+Bindgen (Rust) & LibClang & Relies on LibClang to parse C headers. There are ongoing efforts to explore using LibTooling for access to more features. \\
+Crubit (Rust) & Clang/LLVM Libraries & Uses prebuilt Clang and LLVM libraries for its C++ interoperability. \\
+CXX / UniFFI-rs (Rust) & Manual Bridge / IDL & Avoids parsing C/C++ headers. Developers manually declare a "bridge" layer in Rust or use an Interface Definition Language (IDL). \\
+autocxx (Rust) & Fork of Bindgen & Inherits its reliance on LibClang from Bindgen. \\
+\hline
+\end{tabular}
+\caption{Parsing technologies used in various FFI frameworks.}
+\label{tab:ffi_parsing_tech}
+\end{table}
+
+\subsection{Alternative Technologies}
+
+\begin{itemize}
+    \item \textbf{Manual Parsers:} Manually implementing a standard-compliant C/C++ parser is a monumental task. While projects like SWIG have their own parser, the effort is generally not justifiable given the quality of existing compiler-based tools.
+
+    \item \textbf{Existing Reflection Libraries (Macro/Template-Based):} Third-party reflection libraries in C++, such as \texttt{refl-cpp}, \texttt{RTTR}, and \texttt{enTT meta}, typically rely on extensive macro or template metaprogramming. This approach has two significant drawbacks for FFI generation: it requires developers to annotate or generate declarations through macros, making it unsuitable for unmodified library headers, and it cannot discover all entities within a translation unit, which is essential for automatic binding generation.
+
+    \item \textbf{C++ Static Reflection:} The upcoming C++26 standard includes static reflection capabilities (\texttt{P2996}). While experimental implementations exist, this feature is not yet widely available in major compilers like Apple's Clang. Once mature, it could provide a standardized, powerful alternative to current methods, generating binding code at compile time. The practicality of this approach is unclear.
+\end{itemize}
+
+
+% ----
+% TODO finish
+
+% Compilers like GCC offer introspection capabilities through plugins or intermediate representations, but these are often less stable or comprehensive than Clang's libraries. Microsoft's MSVC compiler has historically offered limited public APIs for AST introspection.
+
+% Clang, by contrast, provides stable C and C++ libraries (LibClang, LibTooling) designed for building tools that require deep semantic understanding of C-family languages. By using a Clang-based parser, the Hylo interoperability tool can:
+
+% \begin{itemize}
+%     \item Accurately parse a wide range of C dialects and compiler-specific extensions by configuring the Clang front-end with the same flags used to compile the target library.
+%     \item Gain access to a complete and accurate Abstract Syntax Tree (AST), including type information, source locations, and macro expansions.
+% \end{itemize}
+
+% \textit{TODO: describe various options for parsing C headers, including the comparison for MSVC, GCC, Clang's capabilities regarding AST introspection, C++26 static reflection and macro and template based meta programming based solutions. Spoiler: Clang is the best option, which supports various dialects (including some MSVC and GCC extensions), supports parsing various C standard versions, and can be configured with the exact compiler flags when parsing that they use for compilation. Compare various Clang library versions, including LibClang, Clang plugins, LibTooling and embedding the whole Clang compiler itself.
+% }

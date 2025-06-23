@@ -14,10 +14,8 @@ Our contributions are:
     \item \textbf{A detailed architectural design for Hylo's C interoperability tooling.} This includes a comparative analysis of C header parsing technologies, a proposed architecture for compiling C function calls by leveraging Clang and LLVM, and a plan for providing transparent cross-language IDE features. (\Autoref{sec:architectural_design})
     \item \textbf{A comprehensive specification for mapping C constructs to Hylo.} This defines the semantic translation of primitive and composite types, pointers, and constructs not present in Hylo like bit-fields, flexible array members and unions. Crucially, it includes a design for mapping C's "semantic dialects" (e.g., enums used as bit flags) to stronger, idiomatic Hylo types, validated in part by targeted prototypes. (\Autoref{sec:mapping_c_constructs})
 \end{enumerate}
+The remainder of this paper is structured as follows. \Autoref{sec:methodology} describes our research methodology. \Autoref{sec:desirable_properties} establishes the design goals for a high-fidelity interoperability layer. \Autoref{sec:architectural_design} presents our architectural design, followed by \autoref{sec:mapping_c_constructs}, which details the complete C-to-Hylo mapping specification. We then review related work in \Autoref{sec:related_work} and discuss our findings and future work in \Autoref{sec:discussion}. Finally, we conclude the paper in \Autoref{sec:conclusion}.
 
-The remainder of this paper is structured as follows. Section 2 reviews the state-of-the-art and defines the desirable properties of a C interoperability layer. Section 3 presents our architectural design, followed by Section 4, which details the complete C-to-Hylo mapping specification. Section 5 validates our design through targeted prototypes. Finally, Section 6 discusses the implications and future work before we conclude."
-
-\textit{TODO add citations and update references in summary.} 
 % \begin{itemize}
     % \item Problem: C is lingua franca between languages, so one would expect it is suitable for it. No, it's horrible. Large historical baggage of ABI differences, type sizes, implementing interop solutions is always costly or not very portable. 
     

@@ -30,6 +30,7 @@ The two main challenges every native interoperability tool must solve are unders
 As shown in \autoref{fig:architecture}, our design extends Hylo's compilation pipeline with a C binding generator. This tool parses C header files using LibClang, applies developer-defined mapping rules, and emits corresponding .hylo declarations to either files or directly into Hylo abstract syntax tree (AST). The Hylo compiler then processes these generated declarations alongside the rest of the program's source code. Finally, the resulting object files are linked with the necessary C libraries—either statically or at runtime—to produce the final executable. By leveraging LibClang, we can capture the precise memory layout into the generated Hylo structs, while LLVM allows us to call C functions according to the platform's C ABI which are detailed in the following sections.
 
 \subsection{Capturing the Memory Layout: Opaque Storage for Composite Types}
+\label{ssec:layout-capture}
 
 C structs and unions are challenging to map to other languages because the new language has to replicate the memory layout of the original type, so that field access is done with correct memory offsets. Determining the struct layout involves handling the size and alignment of members, potentially including padding, and distributing bit-fields. The layout may also be influenced by compiler-specific packing attributes in all major C compilers, though their behavior is consistent.\footnote{See the effect of packing attributes in MSVC, Clang and GCC: \url{https://edu.nl/8hg98}}
 
@@ -64,8 +65,7 @@ TODO discuss what responsibilities are there to correctly call functions
 Reimplementing the complex ABI logic for every supported platform is a monumental and error-prone task. Instead, our proposed architecture leverages Clang's own ABI handling capabilities. Since Hylo uses LLVM as its backend, and Clang is also an LLVM-based compiler, we can delegate the responsibility of ABI-correct function lowering to Clang. The interoperability tool can instruct Clang to generate the LLVM Intermediate Representation (IR) for a call to a C function, ensuring that all platform-specific calling conventions and data layout rules are correctly applied. This approach significantly reduces implementation complexity and ensures correctness by relying on the same battle-tested ABI logic used by Clang itself.
 
 \subsubsection{Compiling Header-Defined Functions: \texttt{static}/\texttt{static inline}/\texttt{inline}}
-
-Functions defined entirely within header files, using the \texttt{static}, \texttt{inline} or \texttt{static inline} keywords, pose a significant challenge because they are not guaranteed to produce linkable symbols in object files. To call them from another language, their function bodies must be made available. Our analysis of existing technologies reveals two primary architectural approaches to this problem:
+\label{ssec:handling-inline-c-functions}
 
 A significant challenge in C interop is handling functions defined entirely within header files. These functions, declared with the \texttt{static}, \texttt{inline}, or \texttt{static inline} specifiers, lack a stable, externally visible symbol in the object file, making them non-linkable by default. To invoke them from another language, their implementation must be made accessible. Our analysis reveals two primary architectural approaches to this problem:
 
@@ -97,4 +97,4 @@ A rigid mapping to a single Hylo construct would be un-idiomatic in at least two
 
 This principle of user-guided mapping extends to other areas, such as specifying that a C function returning an integer error code should be imported as a Hylo function that \texttt{throws}. This empowers developers to create bindings that are not only correct but also safe and highly idiomatic.
 
-//// TODO describe the rules file vs inline annotations (comments vs attributes)
+% //// TODO describe the rules file vs inline annotations (comments vs attributes)

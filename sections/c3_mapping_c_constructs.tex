@@ -27,8 +27,7 @@ In Hylo, we propose a conservative mapping by default similar to Zig but with a 
     \item \textbf{truncate if needed:} when the represented value's meaning allows, we can silently drop the most significant bits that don't fit the target type. Note, due to two's complement representation, values that fit in the target type will preserve their sign. This may be spelled as \texttt{Int32(truncating\_if\_needed: c\_value)}
     \item \textbf{don't narrow:} when performance is critical but we also want a compile-time guarantee that a conversion is lossless on the target platform, we can use this conversion. \texttt{Int32(non\_narrowing: c\_value)} is a conditionally enabled conversion that is only available when the conversion would be lossless.
 \end{itemize}
-Using these explicit conversions ensures that we explicitly capture the programmer's intent and the code remains maximally portable. The viability of the approach was validated by implementing a code generator that produces the conversion function code for the standard library, and testing its usage in Hylo code. The code generator, the generated code and an example usage can be found in TODO upload to github.
-
+Using these explicit conversions ensures that we explicitly capture the programmer's intent and the code remains maximally portable. The viability of the approach was validated by implementing a code generator that produces the conversion function code for the standard library, and testing its usage in Hylo code. The code generator, the generated code and an example usage can be found in \cite{hylo-c-mappings-and-c-integers}.
 
 However, writing all these conversions by hand may be very inconvenient, especially when we have solid assumptions about the target platform. E.g. when writing a wrapper around the LLVM compiler, we know that it will only be used on modern desktop platforms, where we can define many of the mappings like Swift or Muon did. Therefore, we allow making project-specific explicit assumptions about the target platforms, such as \texttt{c\_short} is 16-bit. These assumptions can be checked for all the specified target platforms before compilation, so there are no risks introduced.
 
@@ -66,13 +65,13 @@ There are 3 universally available \textbf{standard floating point types} in the 
 The standard also defines two \textbf{optional features}: \textbf{complex}/imaginary (since C99) and \textbf{decimal} (since C23) floating point types. While complex types may be easily implemented as a Hylo product type of the corresponding floating point types (e.g. \texttt{Complex<CLongDouble>}), on most architectures decimal types require software emulation of arithmetic operations (such as by a library like: \href{https://github.com/libdfp/libdfp}{Libdfp}), and are not yet supported in LLVM/Clang\cite{no-support-llvm-decimals}. Decimal types are also not used commonly in practice, so we also don't support them in Hylo natively.
 
 \subsection{Composite Types}
-TODO introduce them. Struct, Union. Refer to the architecture section.
+As established in the architecture \autoref{ssec:layout-capture}, composite types like structs and unions are mapped using opaque storage and computed properties to ensure a correct memory layout. Additionally, we describe how flexible array members are mapped.
 
 \paragraph{
 Flexible Array Member
     }
     \label{par:fam}
-    A special array member without a specified size may appear at the end of a struct declaration. Such member can get more storage based on how much space is allocated for the struct, which allows accurate representations of e.g. network packets composed of a header and a variable length payload. This may be implemented in Hylo as a computed property that exposes a typed pointer to the first element of the flexible array member. TODO finish FAM, why are they not UB. Structs with a flexible array member shall additionally have a non-copyable zero-sized member that prevents the automatic synthesis of the \texttt{Copyable} and \texttt{Movable} traits.
+    In C, a special array member without a specified size may appear at the end of a struct declaration. Such member can get more storage based on how much space is allocated for the struct, which allows accurate representations of e.g. network packets composed of a header and a variable length payload. This may be implemented in Hylo as a computed property that exposes a typed pointer to the first element of the flexible array member\footnote{Even though LLVM allows this type of access without undefined behavior, care should we taken as Hylo adds more optimizations.}. Structs with a flexible array member shall additionally have a non-copyable zero-sized member that prevents the automatic synthesis of the \texttt{Copyable} and \texttt{Movable} traits.
 
 \subsection{Pointer Types}
 C's \textbf{pointer to data} are mapped to Hylo's \texttt{Pointer<T>} and \texttt{PointerToMutable<T>} types, depending on the \texttt{const}ness of the pointee. \textbf{Function pointers} can be mapped to Hylo closure types with a \texttt{@convention(C)} attribute and an empty environment, which ensures that the correct calling convention is used when the function is called. The details of this are discussed in the proposal \cite{hylo-function-pointers}.
@@ -99,8 +98,7 @@ Therefore, Hylo adopts a consistent default inspired by Rust and Swift. All C fu
 It is then the developer's responsibility to build safe, idiomatic Hylo wrappers around these raw, low-level imports to restore clear value semantics.
 
 \subsubsection{Header-Defined Functions (\texttt{static}, \texttt{inline}, \texttt{static inline})}
-\label{handling_inline_c_functions}
-TODO introduce that everything will be correctly imported as described in the architecture section, but without inlining (for now).
+Header-defined functions are handled using the wrapper-generation approach described in \autoref{ssec:handling-inline-c-functions}, ensuring they can be called from Hylo without requiring direct inlining.
 
 \subsubsection{Variadic Functions}
 Variadic functions in C can be called with any number and type of arguments without their usage being checked at compile time or runtime. Due to their inherent lack of type safety, they shouldn't be directly imported into Hylo. Instead of adding a special language feature exclusively for C interoperability, as Rust did for its FFI\cite{rust-variadic-ffi}, Hylo prioritizes keeping the language simple.

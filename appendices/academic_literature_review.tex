@@ -1,3 +1,26 @@
 \section{Appendix: Academic Literature Review Prompts}
 \label{app:academic_literature_review}
-TODO
+\subsection{General Interoperability Research from Last 10 years (2015-2025)}
+Interoperability tools have vastly changed and developed in the last 10 years since the introduction of Swift in 2014 and Rust getting popular for the C and C++ community. We limited the general research to the last 10 years to make reviewing abstracts more feasible.
+
+\texttt{
+TITLE-ABS-KEY ( ( ( programming W/2 ( language OR languages ) ) OR "polyglot programming" OR "multi-language system*" OR "language integration" ) W/10 ( interoperability OR integration OR ffi OR "foreign function interface" OR "cross-language" OR "inter-language" ) ) AND TITLE-ABS-KEY ( "empirical study" OR "case study" OR evaluation OR comparison OR guideline* OR challenge* OR "pain point*" OR trade-off* OR "experience report" OR "lessons learned" OR "best practice*" OR survey OR limitation* OR obstacle* OR issue* OR qualitative OR quantitative ) AND NOT TITLE-ABS-KEY ( "large language model" OR "machine learning" OR "artificial intelligence" OR "natural language processing" OR nlp OR chatbot OR transformer ) AND ( LIMIT-TO ( DOCTYPE , "ar" ) OR LIMIT-TO ( DOCTYPE , "cp" ) ) AND ( LIMIT-TO ( LANGUAGE , "English" ) ) AND ( LIMIT-TO ( SUBJAREA , "COMP" ) ) AND ( LIMIT-TO ( EXACTKEYWORD , "Interoperability" ) OR LIMIT-TO ( EXACTKEYWORD , "Computer Programming Languages" ) ) AND ( LIMIT-TO ( PUBYEAR , 2015 ) OR LIMIT-TO ( PUBYEAR , 2016 ) OR LIMIT-TO ( PUBYEAR , 2017 ) OR LIMIT-TO ( PUBYEAR , 2018 ) OR LIMIT-TO ( PUBYEAR , 2019 ) OR LIMIT-TO ( PUBYEAR , 2020 ) OR LIMIT-TO ( PUBYEAR , 2021 ) OR LIMIT-TO ( PUBYEAR , 2022 ) OR LIMIT-TO ( PUBYEAR , 2023 ) OR LIMIT-TO ( PUBYEAR , 2024 ) OR LIMIT-TO ( PUBYEAR , 2025 ) )}
+
+
+\subsection{C Specific Research}
+
+\texttt{( "c" W/2 interoperability ) AND NOT "LLM" AND NOT "artificial intelligence" AND NOT "Large Language model" AND NOT "C-ITS"
+}
+
+\subsection{C++ Specific Research}
+
+\texttt{( "c++" W/2 interoperability ) AND NOT "LLM" AND NOT "artificial intelligence" AND NOT "Large Language model" AND NOT "C-ITS"
+}
+
+\subsection{General Review with Undermind AI}
+
+TODO redo this again with different query
+
+Full search query: \textit{I want to find a comprehensive collection and analysis of the desirable properties and evaluation criteria for native interoperability technologies between Hylo (as a prospective C++ successor) and C and C++, with a focus on overcoming the greatest challenges in such interop (e.g., code generation for difficult C constructs, macros, ABI compatibility, generics/templates, exceptions, idiomatic stdlib features, asynchrony, build/tooling ecosystem integration, incremental and unordered adoption). The review must include direct/native interop technologies (including Clang-based and other safety-improving FFI approaches, but not IDL/IPC), with concrete examples and architectural mechanisms that address the outlined challenges, emphasizing how they enable practical, safe, and incremental migration or coexistence between C++ and the new language}
+
+\subsection{Macro usage review with Undermind}
