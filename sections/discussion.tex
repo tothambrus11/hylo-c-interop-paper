@@ -1,4 +1,5 @@
 \section{Discussion and Future Work}
+\label{sec:discussion}
 
 This paper presents a concrete architectural design for a C interoperability layer in Hylo. The core of the design is to leverage the Clang compiler front-end for its high-fidelity C parsing and ABI handling, which ensures correctness across platforms and C dialects. We propose a decoupled C binding generator that produces Hylo declarations. This approach simplifies maintenance, as changes to the interoperability layer do not need to affect the main compiler, and it allows Hylo's development to focus on language features rather than replicating the complex, platform-specific logic already perfected in Clang.
 

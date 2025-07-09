@@ -57,10 +57,10 @@ We propose a hybrid approach for Hylo that combines advantages from both methods
 To ensure the same data layout in Hylo as in C, we need an additional annotation for the Hylo struct: we need to specify its \textit{alignment}, so that the Hylo compiler can know on which boundary it should allocate instances of the struct.
 
 \subsection{Function Calls}
-//// GENERAL CASE
-TODO discuss what responsibilities are there to correctly call functions 
+% //// GENERAL CASE
+% TODO discuss what responsibilities are there to correctly call functions 
 
-//// todo: describe what are the inherent things that need to be different in ABIs based on different architectures, and what are imposed by the OS and the C language. Mention the problem of compilers incorrectly implementing ABIs which sometimes necessitates the interop tool to implement workarounds for specific compilers or platforms (link Emilio interview).
+% //// todo: describe what are the inherent things that need to be different in ABIs based on different architectures, and what are imposed by the OS and the C language. Mention the problem of compilers incorrectly implementing ABIs which sometimes necessitates the interop tool to implement workarounds for specific compilers or platforms (link Emilio interview).
 
 Reimplementing the complex ABI logic for every supported platform is a monumental and error-prone task. Instead, our proposed architecture leverages Clang's own ABI handling capabilities. Since Hylo uses LLVM as its backend, and Clang is also an LLVM-based compiler, we can delegate the responsibility of ABI-correct function lowering to Clang. The interoperability tool can instruct Clang to generate the LLVM Intermediate Representation (IR) for a call to a C function, ensuring that all platform-specific calling conventions and data layout rules are correctly applied. This approach significantly reduces implementation complexity and ensures correctness by relying on the same battle-tested ABI logic used by Clang itself.
 
